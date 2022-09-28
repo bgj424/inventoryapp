@@ -1,34 +1,38 @@
-import * as db from './Database';
 import React, { useState, useEffect } from 'react';
+import { database, auth } from './Database'
+import { removeCollection } from './database_functions/CollectionData';
 import { StyleSheet, Text, View, FlatList, Dimensions } from 'react-native';
-import { ref, get, onValue, orderByChild, equalTo, query } from "firebase/database";
-import { ListItem, Input, TouchableOpacity, Button, Avatar, Badge, ListItemProps, Switch, lightColors } from 'react-native-elements';
-import Icon from 'react-native-vector-icons/FontAwesome';
+import { ref, onValue } from "firebase/database";
+import { ListItem, Dialog, Badge } from 'react-native-elements';
 import { ColorPresets, styles } from './Styles';
 import { SolidButton } from './components/SolidButton';
 import { useTheme } from '@react-navigation/native';
 import { color } from 'react-native-elements/dist/helpers';
-
+import { TransparentButton } from './components/TransparentButton';
 export const ItemList = ({ navigation, route }) => {
     const [items, setItems] = useState('')
+    const [deletionDialogVisible, setDeletionDialogVisible] = useState(false)
     const colors = useTheme().colors;
   
     // Updating list from db
     useEffect(() => {
       onValue(ref(
-        db.database, 'users/' + db.auth.currentUser.uid + '/itemdata/' + route.params.collection
+        database, 'users/' + auth.currentUser.uid + '/itemdata/' + route.params.collection
       ), (snapshot) => {
         const data = snapshot.val();
         if(data) {
-          setItems( // Make array with keys for flatlist
-            Object.entries(data).map(item => ({...item[1], key: item[0]}))
-          )
+          let flatlistArray =
+            Object.entries(data).map( // Make array with keys for flatlist
+              item => ({...item[1], key: item[0]})
+            )
+          setItems(flatlistArray)
+          navigation.setOptions({ title: `${route.params.collection} (${flatlistArray.length ?? 0} items)` })
         } else {
           setItems('')
         }
       })
     }, []);
-  
+
     const listElement = ({ item }) => (
         <ListItem.Swipeable 
           bottomDivider
@@ -51,7 +55,7 @@ export const ItemList = ({ navigation, route }) => {
               icon="trash"
               color="error"
               onPress={() => {
-                db.removeItem(route.params.collection, item.key)
+                removeItem(route.params.collection, item.key)
               }}
             />
             <SolidButton
@@ -107,13 +111,42 @@ export const ItemList = ({ navigation, route }) => {
         />
         <SolidButton 
           onPress={() => {
-            db.removeCollection(route.params.collection)
-            navigation.navigate('Collections')
+              setDeletionDialogVisible(!deletionDialogVisible)
           }} 
           title="Delete collection"
           icon="trash"
           color="error"
         />
+
+        <Dialog
+          isVisible={deletionDialogVisible}
+          onBackdropPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+          overlayStyle={{backgroundColor: colors.card}}
+        >
+          <Dialog.Title titleStyle={{color: colors.text}} title="Confirm deletion" />
+          <Text style={{color: colors.text}}>Are you sure you want 
+            to delete collection {route.params.collection}?
+          </Text>
+          <View style={{width:350}}>
+            <Dialog.Actions>
+              <SolidButton
+                style={{width: 100}}
+                title="Cancel"
+                color="error"
+                onPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+              />
+              <SolidButton
+                style={{width: 100}}
+                title="Confirm"
+                color="success"
+                onPress={() => {
+                  removeCollection(route.params.collection)
+                  navigation.navigate('Collections')
+                }}
+              />
+            </Dialog.Actions>
+          </View>
+        </Dialog>
       </View>
     )
 }

@@ -4,10 +4,10 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-// Customizable button with preset colors and styling
+// Button with preset colors and styling
 // Additional props are:
 // icon, iconColor
-export const SolidButton = (props) => {
+export const TransparentButton = (props) => {
     const colors = useTheme().colors;
 
     return (
@@ -15,7 +15,7 @@ export const SolidButton = (props) => {
             onPress={props.onPress}
             style={[
                 styles.buttonSolid, {
-                    backgroundColor: (colors[props.color] ?? props.color) ?? colors.primary,
+                    backgroundColor: "transparent",
                     ...props.style
                 },
             ]}
@@ -26,7 +26,7 @@ export const SolidButton = (props) => {
                         style={{marginRight: props.title ? 10 : 0}}
                         name={props.icon}
                         size={20}
-                        color={props.iconColor ?? "white"}
+                        color={props.iconColor ?? colors.reverse.card}
                     />
                 }
 
@@ -34,8 +34,7 @@ export const SolidButton = (props) => {
                     numberOfLines={1} 
                     adjustsFontSizeToFit={true}
                     style={{
-                        color: props.titleColor ?? "white",
-                        fontWeight: "bold",
+                        color: props.titleColor ?? colors.text,
                         fontSize: 15,
                     }}
                 >

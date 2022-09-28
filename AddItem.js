@@ -1,23 +1,23 @@
-import * as db from './Database'
-import React, { useState, useEffect, createRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { database, auth } from './Database'
+import { addItem, saveItem, saveItemInfo } from './database_functions/ItemData'
+import React, { useState, useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ref, get } from "firebase/database";
-import { Input, Button } from 'react-native-elements';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { styles } from './Styles';
 import { StyledInput } from './components/StyledInput';
-
+import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
+import { SolidButton } from './components/SolidButton';
 // Insert specified amount of specific item to your inventory
 export const AddItem = ({ navigation, route }) => {
     const [item, setItem] = useState({})
-    const [invalidInputsList, setInvalidInputsList] = useState([])
     const [checkInputValues, setCheckInputValues] = useState(false)
-
+    const [error, setError] = useState('')
+    let invalidInputsList = []
+    
     // Get item information if it exists
     useFocusEffect(
       React.useCallback(() => {
-        
         if(route.params.item) {
           setItem({
             name: route.params.item.name,
@@ -30,7 +30,7 @@ export const AddItem = ({ navigation, route }) => {
         if(item.id) {
           // Autofill item information
           get(ref(
-            db.database, 'users/' + db.auth.currentUser.uid + '/iteminfo/' + item.id
+            database, 'users/' + auth.currentUser.uid + '/iteminfo/' + item.id
           ))
           .then(snapshot => {
             const itemSnapshot = snapshot.val();
@@ -56,47 +56,53 @@ export const AddItem = ({ navigation, route }) => {
         if(checkInputValues) {
             add()
         }
-    }, [invalidInputsList])
+    }, [checkInputValues])
 
-    // StyledInput calls this to update status of each input element
+    // Function called by Styled Input
     const handleInvalidValue = (inputName, valueIsInvalid) => {
-        if(valueIsInvalid) {
-            if(!invalidInputsList.includes(inputName))
-                // Add to invalid inputs list
-                setInvalidInputsList([...invalidInputsList, inputName])
-            else return
-        } else {
-            // Remove from invalid inputs list
-            setInvalidInputsList(
-                invalidInputsList.filter(
-                  el => el !== inputName
-                )       
-            )
-        }
+        invalidInputsList =
+            updateInvalidInputsList(
+                invalidInputsList, inputName, valueIsInvalid
+            ) 
     }
 
     // Add item to db
     const add = () => {
-        
-        console.log(invalidInputsList.length, "len")
+        setError('')
         if(invalidInputsList.length > 0) return
+        
+        // Add new item
+        if(!route.params.edit) {
+          addItem(
+              route.params.collection, 
+              item.id ?? item.name, 
+              item.name, item.description, item.amount
+          )
+          .catch(e => {
+              setError(e)
+              return
+          })
 
-        if(item.id) {
-          db.addItemInfo(item.id, item.name, item.description)
+        // Edit already existing item
+        } else {
+            saveItem(
+              route.params.collection, 
+              item.id ?? item.name, 
+              item.name, item.description, item.amount
+            )
+            saveItemInfo(
+              item.id, 
+              item.name, 
+              item.description
+            )
         }
 
-        db.storeItem(
-          route.params.collection, 
-          (item.id ?? item.name), 
-          item.name, item.description, item.amount
-        )
-        
         navigation.navigate('Item List', {
-          collection: route.params.collection,
-          item: {
-            name: item.name,
-            description: item.description,
-          }
+            collection: route.params.collection,
+            item: {
+                name: item.name,
+                description: item.description,
+            }
         })
     }
 
@@ -106,7 +112,7 @@ export const AddItem = ({ navigation, route }) => {
               label="Name"
               checkValue={checkInputValues}
               handleInvalidValue={handleInvalidValue}
-              onChangeText={name => setItem({...item, name: name})}
+              onChangeText={name => {setItem({...item, name: name}); setError('')}}
               value={item.name}
               placeholder="Name for item"
               icon="tag"
@@ -116,7 +122,7 @@ export const AddItem = ({ navigation, route }) => {
               label="Description"
               checkValue={checkInputValues}
               handleInvalidValue={handleInvalidValue}
-              onChangeText={description => setItem({...item, description: description})} 
+              onChangeText={description => {setItem({...item, description: description}); setError('')}} 
               value={item.description}
               placeholder="Item description"
               icon="quote-right"
@@ -128,7 +134,7 @@ export const AddItem = ({ navigation, route }) => {
               handleInvalidValue={handleInvalidValue}
               matchType="number"
               keyboardType="numeric" 
-              onChangeText={amount => setItem({...item, amount: amount})} 
+              onChangeText={amount => {setItem({...item, amount: amount}); setError('')}} 
               value={item.amount}
               placeholder="Quantity"
               icon="cubes"
@@ -139,18 +145,26 @@ export const AddItem = ({ navigation, route }) => {
                 <Text style={styles.buttonLabel}>
                   Save with a barcode (optional)
                 </Text>
-                <Button onPress={() => 
-                  navigation.navigate('Barcode Scanner', {
-                    collection: route.params.collection,
-                    name: item.name,
-                    description: item.description,
-                    amount: item.amount
-                  })} title="Scan barcode" 
+                <SolidButton 
+                  onPress={() => 
+                    navigation.navigate('Barcode Scanner', {
+                      collection: route.params.collection,
+                      name: item.name,
+                      description: item.description,
+                      amount: item.amount
+                    }
+                  )} 
+                  title="Scan barcode"
+                  icon="camera"
                 />
               </View>
             }  
-
-            <Button onPress={() => setCheckInputValues(true) } title="Add item" />
+            <SolidButton 
+              onPress={() => setCheckInputValues(checkInputValues + 1) } 
+              title={route.params.edit ? "Save" : "Add item"}
+              icon={route.params.edit ? "check" : "plus"}
+            />
+            {!!error && <Text style={styles.error}>{error}</Text>}
         </View>
     )
 }

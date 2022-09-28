@@ -1,61 +1,76 @@
-import * as db from './Database'
+import { database, auth } from './Database'
+import { addCollection } from './database_functions/CollectionData';
+import { changeUserData } from './database_functions/UserData'
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, KeyboardAvoidingView } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { ref, get, onValue, orderByChild, equalTo, query } from "firebase/database";
-import { ListItem, Input, Button, ButtonGroup, Avatar, Badge, ListItemProps, Switch, lightColors } from 'react-native-elements';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import ColorPicker from 'react-native-wheel-color-picker'
+import { StyleSheet, Text, View, KeyboardAvoidingView } from 'react-native';
+import { useTheme } from '@react-navigation/native';
+import { increment } from "firebase/database";
+import { ColorPicker } from './components/ColorPicker';
 import { SolidButton } from './components/SolidButton';
+import { StyledInput } from './components/StyledInput';
+import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
 
 export const AddCollection = ({ navigation, route }) => {
+    const colors = useTheme().colors;
     const [name, setName] = useState('');
-    const [inputError, setInputError] = useState('');
-    const [currentColor, setCurrentColor] = useState('');
+    const [error, setError] = useState('');
+    const [currentColor, setCurrentColor] = useState(null);
+    const [checkInputValues, setCheckInputValues] = useState(false);
+    let invalidInputsList = [];
 
     const add = () => {
-        setInputError('')
-        db.addCollection(name, currentColor)
+        setError('')
+        addCollection(name, currentColor)
         .then(result => {
+            changeUserData({collectionsCreated: increment(1)})
             navigation.navigate('Collections', {
                 name: name,
                 color: currentColor
             })
         })
-        .catch(e => setInputError(e))
+        .catch(e => setError(e))
+    }
+
+    useEffect(() => {
+      if(checkInputValues) {
+          add()
+      }
+    }, [checkInputValues])
+
+    // Function called by Styled Input
+    const handleInvalidValue = (inputName, valueIsInvalid) => {
+        invalidInputsList =
+            updateInvalidInputsList(
+                invalidInputsList, inputName, valueIsInvalid
+            ) 
     }
 
     return(
-        <KeyboardAvoidingView style={styles.container}>
-            <View style={styles.inputBox}>
-                <Text>Collection name {currentColor}</Text>
-                <Input 
-                    style={styles.input} 
-                    onChangeText={name => setName(name)} 
+        <KeyboardAvoidingView style={[styles.container, {alignItems:"center"}]}>
+            <View style={[styles.inputBox]}>
+                <StyledInput
+                    label="Collection name"
+                    style={{width:50}}
+                    onChangeText={name => {setName(name); setError('')}} 
                     value={name}
-                    placeholder="Collection name"
-                    leftIcon={
-                    <Icon name='tag' size={22} color={"gray"} />
-                    }
+                    placeholder="Name for collection"
+                    icon="tag"
+                    iconColor={currentColor === null ? colors.reverse.card : currentColor}
+                    checkValue={checkInputValues}
+                    handleInvalidValue={handleInvalidValue}
                 />
-                <View style={{alignItems: 'center'}}>
-                  <ColorPicker
-                    onColorChange={(color) => {setCurrentColor(color)}}
-                    thumbSize={40}
-                    sliderSize={40}
-                    noSnap={true}
-                    row={false}
-                    sliderHidden={true}
-                    swatches={false}
-                  />
-                  {!!inputError &&
-                      <Text style={[styles.error, {margin: 20}]}>
-                          {inputError}
-                      </Text>
-                  }
-                  <View style={{width: 170}}>
-                      <SolidButton onPress={() => add()} title="Add item" />
-                  </View>
+                <ColorPicker
+                  onColorChange={(color) => setCurrentColor(color)}
+                />
+                <View style={{marginTop:100, alignItems:"center"}}>
+                    <Text style={styles.error}>
+                        {error}
+                    </Text>
+                    <SolidButton
+                      style={{width: 200}}
+                      onPress={() => setCheckInputValues(checkInputValues + 1)} 
+                      title="Add item"
+                    />
                 </View>
             </View>
         </KeyboardAvoidingView>

@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, FlatList } from 'react-native';
 import { Camera } from 'expo-camera';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { styles } from './Styles'
 
 /* This uses the barcode scanner example code from Expo docs
 https://docs.expo.dev/versions/latest/sdk/bar-code-scanner/ */

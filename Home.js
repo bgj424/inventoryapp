@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, KeyboardAvoidingView } from 'react-native';
-import * as db from './Database';
+import { database, auth } from './Database';
+import { logIn, logOut, registerAccount } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
@@ -10,7 +11,7 @@ export const Frontpage = ({ navigation }) => {
   const colors = useTheme().colors;
 
   const logOut = () => {
-    db.logOut()
+      logOut()
   }
 
   return (
@@ -46,7 +47,7 @@ export const Login = ({ navigation }) => {
 
   const logIn = () => {
     setLoginError('')
-    db.logIn(email, password)
+    logIn(email, password)
     .then(result => {
     })
     .catch(e => setLoginError(e))
@@ -112,7 +113,7 @@ export const Registration = ( { navigation }) => {
   const register = () => {
     setRegistrationError('')
     if(password === passwordConfirmation) {
-      db.registerAccount(email, password)
+      registerAccount(email, password)
       .then(result => {
       })
       .catch(e => setRegistrationError(e))

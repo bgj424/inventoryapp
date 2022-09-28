@@ -10,7 +10,7 @@ import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { createStackNavigator } from '@react-navigation/stack';
-import * as db from './Database';
+import { database, auth } from './Database';
 import { ref, get, onValue} from "firebase/database";
 import { BarcodeScanner } from './BarcodeScanner';
 import { ItemList } from './ItemList';
@@ -69,20 +69,20 @@ export default function App() {
   const [userData, setUserData] = useState({});
 
   // Get auth status from firebase
-  db.auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged((user) => {
     if (user) setUser(user)
     else setUser('')
     if(!initialized) {
       // Get user's data and settings
       onValue(ref(
-        db.database, 'users/' + db.auth.currentUser.uid + '/userdata'
+        database, 'users/' + auth.currentUser.uid + '/userdata'
       ), (snapshot) => {
           const data = snapshot.val();
           if(data) { 
             setUserData(data)
             if(data.theme) setTheme(data.theme)
-            setInitialized(true)
           }
+          setInitialized(true)
       })
     }
   });

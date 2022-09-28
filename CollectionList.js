@@ -1,10 +1,8 @@
-import * as db from './Database'
+import { database, auth } from './Database'
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList, KeyboardAvoidingView } from 'react-native';
-import { ref, get, onValue, orderByChild, equalTo, query } from "firebase/database";
-import { ListItem, Input, Button, ButtonGroup, Avatar, Badge, ListItemProps, Switch, lightColors } from 'react-native-elements';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import ColorPicker from 'react-native-wheel-color-picker';
+import { Text, View, FlatList, SafeAreaView } from 'react-native';
+import { ref, onValue } from "firebase/database";
+import { ListItem, ButtonGroup, Badge } from 'react-native-elements';
 import { styles } from './Styles';
 import { SolidButton } from './components/SolidButton';
 import { useTheme } from '@react-navigation/native';
@@ -18,14 +16,17 @@ export const CollectionList = ({ navigation, route }) => {
     // Updating list from db
     useEffect(() => {
         onValue(ref(
-            db.database, 'users/' + db.auth.currentUser.uid + '/collections'
+            database, 'users/' + auth.currentUser.uid + '/collections'
         ), (snapshot) => {
             const data = snapshot.val();
 
             if(data) {
-                setCollections( // Make array with keys for flatlist
-                    Object.entries(data).map(collection => ({...collection[1], key: collection[0]}))
-                )
+                let flatlistArray = 
+                  Object.entries(data).map( // Make array with keys for flatlist
+                    collection => ({...collection[1], key: collection[0]})
+                  )
+                setCollections(flatlistArray)
+                navigation.setOptions({ title: `My Collections (${flatlistArray.length ?? 0})` })
             } else {
                 setCollections('')
             }
@@ -41,18 +42,24 @@ export const CollectionList = ({ navigation, route }) => {
             itemCount: item.itemCount
           })}
           titleStyle={{fontWeight: 'bold'}}
-          containerStyle={{backgroundColor: colors.background}}
+          containerStyle={{backgroundColor: item.color}}
         >
           <ListItem.Content>
+            <View>
               <ListItem.Title style={{color: colors.text}}>
-                <Badge 
+                <Badge
                   value={item.itemCount + " items"}
-                  badgeStyle={{
-                    backgroundColor: item.color ?? "red"
+                  containerStyle={{
+                   height:20
                   }}
                 />
-                {item.key}
+                <Text
+                  style={{padding:10, color: item.color?colors.lightText:colors.text}}
+                >
+                  {item.key}
+                </Text>
               </ListItem.Title>
+            </View>
           </ListItem.Content>
         </ListItem>
       )
@@ -62,7 +69,7 @@ export const CollectionList = ({ navigation, route }) => {
       if(sortedBy === 1) { // by date
         return (data.sort((a, b) => a.creationDate > b.creationDate))
       } else { // by name
-        data = data.sort((a, b) => a.key.localeCompare(b.key)) // Sort by name
+        data = data.sort((a, b) => a.key.toLowerCase().localeCompare(b.key.toLowerCase())) // Sort by name
         if(sortedBy === 0) 
           return data
         else // by name + itemcount
@@ -71,7 +78,7 @@ export const CollectionList = ({ navigation, route }) => {
     }
 
     return(
-      <View>
+      <SafeAreaView>
         <ButtonGroup
           onPress={(value) => {setSortedBy(value)}}
           selectedIndex={sortedBy}
@@ -80,16 +87,22 @@ export const CollectionList = ({ navigation, route }) => {
           selectedButtonStyle={{backgroundColor: colors.primary}}
           textStyle={{color: colors.text}}
         />
-        <FlatList 
-          data={sortListData(collections) ?? null}
-          renderItem={listElement}
-        />
-        <SolidButton 
-            icon="plus" 
-            title="test" 
-            color="primary"
-            onPress={() => navigation.navigate('New Collection')} 
-        />
-      </View>
+        <View style={{height:600}} >
+          <FlatList
+            style={{minHeight:400}}
+            data={sortListData(collections) ?? null}
+            renderItem={listElement}
+          />
+        </View>
+        <View style={{alignItems:"center",marginTop:20}}>
+            <SolidButton
+                style={{width:200}}
+                icon="plus" 
+                title="Create new collection" 
+                color="primary"
+                onPress={() => navigation.navigate('New Collection')} 
+            />
+        </View>
+      </SafeAreaView>
     )
 }

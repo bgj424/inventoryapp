@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Switch } from 'react-native';
-import * as db from './Database';
+import { database, auth }from './Database';
+import { changeUserData } from './database_functions/UserData';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
@@ -12,11 +13,6 @@ export const SettingsScreen = ({ navigation }) => {
     const {theme, setTheme} = useContext(ThemeContext);
     const [settingChangedTimestamp, setSettingChangedTimestamp] = useState({});
     const colors = useTheme().colors;
-
-    const changeTheme = () => {
-      setTheme(theme === 'light' ? 'dark' : 'light')
-      db.changeUserSettings({theme: theme})
-    }
 
     const changeSetting = (setting) => {
       let changedSettings = {};
@@ -36,8 +32,7 @@ export const SettingsScreen = ({ navigation }) => {
           break;
       }
 
-      console.log(changedSettings)
-      if(changedSettings) db.changeUserSettings(changedSettings)
+      if(changedSettings) changeUserData(changedSettings)
     }
 
     return (

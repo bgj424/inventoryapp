@@ -19,23 +19,19 @@ export const StyledInput = (props) => {
         message: '',
         display: false
     })
-    var propFunctions = {}
 
     useEffect(() => { 
         if(props.checkValue) checkValue(true)
     }, [props.checkValue])
 
     // Check whether input value prop matches type prop
-    const checkValue = (displayError) => {
-        console.log("checkval")
+    function checkValue(displayError) {
         if(props.handleInvalidValue) {
             try { // Value is valid
                 setError({message: '', display: false})
                 checkInputValue(props.matchType, props.value)
                 props.handleInvalidValue(props.label, false)
-                console.log("valid")
             } catch(e) { // Value is invalid
-                console.log("not valid")
                 setError({message: e, display: displayError})
                 props.handleInvalidValue(props.label, true)
                 if(displayError)
@@ -50,7 +46,7 @@ export const StyledInput = (props) => {
             keyboardType={props.keyboardType}
             errorMessage={error.display ? error.message : ''}
             ref={inputRef}
-            style={[styles.input, {...props.style}]}
+            style={[styles.input, {...props.style, color: colors.text}]}
             onChangeText={props.onChangeText}
             value={props.value ?? ''}
             placeholder={props.placeholder}
