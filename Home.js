@@ -1,224 +1,184 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Linking, ImageBackground } from 'react-native';
 import { database, auth } from './Database';
-import { logIn, logOut, registerAccount } from './database_functions/UserAuth';
+import { userSignIn, userSignOut, registerAccount } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Input } from 'react-native-elements';
+import { Divider, Avatar } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
+import { TransparentButton } from './components/TransparentButton';
+import { StyledInput } from './components/StyledInput';
 import { useTheme } from '@react-navigation/native';
+import { styles } from './Styles'
+import { InfoDialog } from './components/InfoDialog';
+import { UserContext } from './AppContext'; 
+import { Ionicons } from '@expo/vector-icons';
 
 export const Frontpage = ({ navigation }) => {
+  const [visibleDialog, setVisibleDialog] = useState('');
+  const { user, setUser } = useContext(UserContext);
+  const [dialogMessage, setDialogMessage] = useState({title: '', message: ''})
   const colors = useTheme().colors;
 
-  const logOut = () => {
-      logOut()
+  const changeVisibleDialog = (value, data = null) => { 
+    if(value !== null) setVisibleDialog(value)
+    if(data) setDialogMessage(data)
   }
 
   return (
-      <View style={styles.container}>
-        <View style={styles.inputBox}>
-          <View style={{alignItems: 'center'}}>
-            <View style={{width: 170}}>
-              <Text style={[styles.buttonLabel, {color: colors.text}]}>
-                Welcome to Mobile Inventory!
-                You have a total of 0 items
-                in 0 collections
+    <>
+    <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 20}]}>
+      <View style={{flex:1}}>
+        {/* Input Container Main */}
+        <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+          <View style={{width:"100%"}}>
+            <View style={{flexDirection:"row"}}>
+              <Ionicons name="logo-react" size={27} color={colors.primary2} style={{marginRight:10}} />
+            <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>
+              Welcome {auth.currentUser?.displayName}
+            </Text>
+            </View>
+            <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
+            <View style={{flexDirection:"row"}}>
+              <View style={{flex:1}}>
+                <Avatar
+                  onPress={()=>setUser({...user, displayName: "test1"})}
+                  title="user"
+                  size={65}
+                  rounded
+                  source={ user?.photoURL ? { uri: user?.photoURL || {} } : require("./assets/user.png")}
+                />
+              </View>
+              <View style={{flex:5}}>
+                <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
+                  Welcome to Mobile Inventory!
+                  You have a total of 0 items
+                  in 0 collections
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+        {/* Profile Containers */}
+        <View style={[{width:"100%",flexDirection:"row",alignItems:"center"}]}>
+          {/* User profile */}
+          <View style={{flex: 1, marginTop:10, marginBottom:10, marginRight:5, backgroundColor:colors.card, borderRadius:5, padding:20}}>
+            <View style={{flexDirection:"row"}}>
+              <Icon
+                  style={{marginRight: 15}}
+                  name="user"
+                  size={30}
+                  color={colors.primary2}
+              />
+              <Text style={{color:colors.primary3, fontSize:20, fontWeight:"bold"}}>Account</Text>
+            </View>
+            <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
+            <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16, marginBottom:18}]}>
+              Change preferences and edit account details at Settings
+            </Text>
+            <SolidButton
+              style={{width:200, marginTop:10}}
+              onPress={() => navigation.navigate('Settings')} 
+              title="Go to Settings"
+            />
+          </View>
+          {/* User item data */}
+          <View style={{flex: 1, marginTop:10, marginBottom:10, marginLeft:5, backgroundColor:colors.card, borderRadius:5, padding:20}}>
+            <View style={{flexDirection:"row"}}>
+              <Icon
+                  style={{marginRight: 15}}
+                  name="briefcase"
+                  size={30}
+                  color={colors.primary2}
+              />
+              <Text style={{color:colors.primary3, fontSize:20, fontWeight:"bold"}}>My Items</Text>
+            </View>
+            <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
+            <View style={{flexDirection:"row"}}></View>
+            <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
+              View your inventory, collections and items at the Items tab
+            </Text>
+            <SolidButton 
+              style={{width:200, marginTop:10}}
+              onPress={() => navigation.navigate('Items', { screen: 'Collections' })} 
+              title="Go to Items"
+            />
+          </View>
+        </View>
+        {/* Help Container */}
+        <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+          <View style={{width:"100%", alignItems:"center"}}>
+          <View style={{flexDirection:"row"}}>
+              <Icon
+                  style={{marginRight: 15}}
+                  name="question-circle"
+                  size={30}
+                  color={colors.primary2}
+              />
+              <Text style={{color:colors.extradark, fontSize:20, fontWeight:"bold", textDecorationLine:"underline"}}
+                onPress={() => {
+                  setVisibleDialog("info")
+                  setDialogMessage({
+                    title: "About the app",
+                    message: <>
+                      <Text style={{color: colors.text}}>
+                        Inventory App allows you to create lists which contain information about items. Get started by clicking 
+                      </Text>
+                      <Text style={{color:colors.primary3}}> Items</Text>
+                      <Text style={{color: colors.text}}> on the bottom right corner.</Text>
+                      <Text style={{color: colors.text}}>{"\n\n"}GitHub:{"\n"}</Text>
+                      <Text 
+                        style={{color: colors.primary3, textDecorationLine:"underline", fontSize:16}} 
+                        onPress={() => Linking.openURL('https://github.com/bgj424/inventoryapp')}
+                      >
+                        github.com/bgj424/inventoryapp
+                      </Text>
+                      <Text style={{color: colors.text}}>{"\n\n"}Made with </Text>
+                      <Ionicons name="logo-firebase" size={20} color={colors.text} style={{marginRight:5}} />
+                      <Ionicons name="logo-react" size={20} color={colors.text} style={{marginRight:5}} />
+                    </>
+                  })
+                }}
+              >
+                About the app
               </Text>
-              <SolidButton 
-                onPress={() => navigation.navigate('Settings')} 
-                title="Settings"
-              />
-              <SolidButton 
-                onPress={() => logOut()} 
-                title="Log out" 
-              />
             </View>
           </View>
         </View>
       </View>
-  )
-}
-
-export const Login = ({ navigation }) => {
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-
-  const logIn = () => {
-    setLoginError('')
-    logIn(email, password)
-    .then(result => {
-    })
-    .catch(e => setLoginError(e))
-  }
-
-  return (
-      <KeyboardAvoidingView style={styles.container}>
-        <View style={styles.inputBox}>
-          <Text>Email</Text>
-          <Input 
-            style={styles.input}
-            placeholder="email@example.com"
-            onChangeText={email => setEmail(email)}
-            value={email}
-            leftIcon={
-              <Icon name='user' size={22} color='#757575' />
-            }
+      {/* Footer */}
+      <View style={[{width:"100%",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+        {/* Logout Button */}
+        <View style={{alignItems:"flex-end"}}>
+          <SolidButton
+              style={{width:200, marginBottom:10}}
+              color={colors.extradark}
+              onPress={() => userSignOut()} 
+              title="Log out" 
           />
-          <Text>Password</Text>
-          <Input
-            style={styles.input}
-            placeholder="Password" 
-            secureTextEntry={true} 
-            onChangeText={password => setPassword(password)} 
-            value={password}
-            leftIcon={
-              <Icon name='lock' size={22} color='#757575' />
-            }
-          />
-          <View style={{alignItems: 'center'}}>
-            {!!loginError &&
-            <Text 
-              style={[styles.error, {margin: 20}]}
-            >
-              Login failed [{loginError}]
-            </Text>
-            }
-            <View style={{width: 170}}>
-              <Button
-                onPress={() => logIn()} 
-                title="Log in" 
-              />
-              <Text style={styles.buttonLabel}>No account?</Text>
-              <Button 
-                style={styles.buttonSolid} 
-                onPress={() => navigation.navigate('Registration')} 
-                title="Register now" 
-              />
-            </View>
-          </View>
         </View>
-      </KeyboardAvoidingView>
-  );
-}
-
-export const Registration = ( { navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
-  const [userName, setUserName] = useState('');
-  const [registrationError, setRegistrationError] = useState('');
-
-  const register = () => {
-    setRegistrationError('')
-    if(password === passwordConfirmation) {
-      registerAccount(email, password)
-      .then(result => {
-      })
-      .catch(e => setRegistrationError(e))
-    } else {
-      setRegistrationError('Passwords do not match')
-    }
-  }
-
-  return (
-    <KeyboardAvoidingView style={styles.container}>
-      <View style={styles.inputBox}>
-          <Text>Email</Text>
-          <Input 
-            style={styles.input}
-            placeholder="email@example.com"
-            onChangeText={email => setEmail(email)} 
-            value={email}
-            leftIcon={
-              <Icon name='user' size={22} color='#757575' />
-            }
-          />
-          <Text>Password</Text>
-          <Input
-            style={styles.input}
-            placeholder="Password" 
-            secureTextEntry={true} 
-            onChangeText={password => setPassword(password)} 
-            value={password}
-            leftIcon={
-              <Icon name='lock' size={22} color='#757575' />
-            }
-          />
-          <Text>Retype Password</Text>
-          <Input
-            style={styles.input}
-            placeholder="Type password again" 
-            secureTextEntry={true} 
-            onChangeText={passwordConfirmation => setPasswordConfirmation(passwordConfirmation)} 
-            value={passwordConfirmation}
-            leftIcon={
-              <Icon name='lock' size={22} color='#757575' />
-            }
-          />
-          <Text>Username</Text>
-          <Input
-            style={styles.input}
-            placeholder="Username"
-            onChangeText={userName => setUserName(userName)} 
-            value={userName}
-            leftIcon={
-              <Icon name='tag' size={22} color='#757575' />
-            }
-          />
-          <View style={{alignItems: 'center'}}>
-            {!!registrationError &&
-              <Text style={[styles.error, {margin: 20}]}>
-                Registration failed [{registrationError}]
-              </Text>
-            }
-            <View style={{width: 170}}>
-              <Button
-                style={styles.buttonSolid} 
-                onPress={() => register()} 
-                title="Register" 
-              />
-              <Text style={styles.buttonLabel}>Already have an account?</Text>
-              <Button 
-                style={styles.buttonSolid} 
-                onPress={() => navigation.navigate('Login')} 
-                title="Log in" 
-              />
-            </View>
+        {/* App info */}
+        <View style={{flexDirection:"row", borderRadius:5, alignItems:"center"}}>
+          <Ionicons name="logo-react" size={20} color={colors.subtle} style={{marginRight:5}} />
+          <Text style={{color: colors.subtle, fontSize:16, marginRight:6}}>
+            Inventory App (Version 1.0)
+          </Text>
+          <Ionicons name="logo-github" size={20} color={colors.text} style={{marginRight:5, marginLeft: 6}} />
+          <Text 
+            style={{color: colors.primary3, textDecorationLine:"underline", fontSize:16}} 
+            onPress={() => Linking.openURL('https://github.com/bgj424/inventoryapp')}
+          >
+            GitHub&nbsp;
+          </Text>
         </View>
       </View>
     </KeyboardAvoidingView>
-  );
+    <InfoDialog
+      visibleDialog={visibleDialog}
+      changeVisibleDialog={changeVisibleDialog}
+      title={dialogMessage.title}
+      message={dialogMessage.message}
+      icon={dialogMessage.icon}
+    />
+    </>
+  )
 }
-
-
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'column',
-    },
-    row: {
-      flexWrap: 'wrap',
-      flexDirection: "row",
-    },
-    error: {
-      color: 'red'
-    },
-    buttonSolid: {
-      width: 50,
-    },
-    inputBox: {
-      margin: 20,
-      width: 400,
-    },
-    input: {
-      padding: 10,
-    },
-    buttonLabel: {
-      marginBottom: 5, 
-      marginTop: 15
-    }
-  });

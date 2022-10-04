@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { styles } from "../Styles"
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { SolidButton } from './SolidButton';
-import { color } from 'react-native-elements/dist/helpers';
+
+/**
+ * @param props.onColorChange function to call when color is changed
+ */
 
 export const ColorPicker = (props) => {
     const colors = useTheme().colors;

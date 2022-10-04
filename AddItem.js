@@ -1,20 +1,23 @@
 import { database, auth } from './Database'
 import { addItem, saveItem, saveItemInfo } from './database_functions/ItemData'
 import React, { useState, useEffect } from 'react';
-import { Text, View } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { Text, View, KeyboardAvoidingView } from 'react-native';
+import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { ref, get } from "firebase/database";
 import { styles } from './Styles';
 import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
 import { SolidButton } from './components/SolidButton';
+import { Divider } from 'react-native-elements';
+
 // Insert specified amount of specific item to your inventory
 export const AddItem = ({ navigation, route }) => {
     const [item, setItem] = useState({})
-    const [checkInputValues, setCheckInputValues] = useState(false)
+    const [doInputValueCheck, setDoInputValueCheck] = useState(false)
     const [error, setError] = useState('')
     let invalidInputsList = []
-    
+    const colors = useTheme().colors;
+
     // Get item information if it exists
     useFocusEffect(
       React.useCallback(() => {
@@ -23,7 +26,8 @@ export const AddItem = ({ navigation, route }) => {
             name: route.params.item.name,
             description: route.params.item.description,
             amount: route.params.item.amount,
-            id: route.params.item.id
+            id: route.params.item.id,
+            barcode: route.params.barcode ?? null
           })
         }
 
@@ -53,10 +57,10 @@ export const AddItem = ({ navigation, route }) => {
     );
 
     useEffect(() => {
-        if(checkInputValues) {
-            add()
+        if(doInputValueCheck && !invalidInputsList.length > 0) {
+            submit()
         }
-    }, [checkInputValues])
+    }, [doInputValueCheck])
 
     // Function called by Styled Input
     const handleInvalidValue = (inputName, valueIsInvalid) => {
@@ -66,86 +70,108 @@ export const AddItem = ({ navigation, route }) => {
             ) 
     }
 
-    // Add item to db
-    const add = () => {
+    const submit = () => {
         setError('')
-        if(invalidInputsList.length > 0) return
+        let errMsg
         
         // Add new item
         if(!route.params.edit) {
           addItem(
               route.params.collection, 
-              item.id ?? item.name, 
-              item.name, item.description, item.amount
+              item.id ?? item.name, item.name, 
+              item.description ?? null, item.amount
           )
           .catch(e => {
-              setError(e)
-              return
+              errMsg = "Error while adding item (" + e.code + ")"
           })
 
         // Edit already existing item
         } else {
             saveItem(
               route.params.collection, 
-              item.id ?? item.name, 
-              item.name, item.description, item.amount
+              item.id ?? item.name, item.name, 
+              item.description, item.amount
             )
             saveItemInfo(
               item.id, 
               item.name, 
-              item.description
+              item.description,
+              item.barcode
             )
         }
 
-        navigation.navigate('Item List', {
-            collection: route.params.collection,
-            item: {
-                name: item.name,
-                description: item.description,
-            }
-        })
+        if(!errMsg) {
+          navigation.navigate('Item List', {
+              collection: route.params.collection,
+              item: {
+                  name: item.name,
+                  description: item.description,
+              }
+          })
+        } else setError(errMsg)
     }
 
     return(
-        <View style={{margin: 50}}>
-            <StyledInput
-              label="Name"
-              checkValue={checkInputValues}
-              handleInvalidValue={handleInvalidValue}
-              onChangeText={name => {setItem({...item, name: name}); setError('')}}
-              value={item.name}
-              placeholder="Name for item"
-              icon="tag"
-            />
+        <>
+        <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
+          <View style={{flex:1}}>
+            <View style={{height:"100%", justifyContent:"center"}}>
+              {/* Main container */}
+              <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+                <View style={{width:"100%"}}>
+                <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Item details</Text>
+                <Divider color={colors.reverse.card} style={{marginVertical:10}} />
+                  <View>
+                    {/* Form */}
+                    <StyledInput
+                      label="Name"
+                      matchType="text"
+                      checkValue={doInputValueCheck}
+                      handleInvalidValue={handleInvalidValue}
+                      onChangeText={name => {setItem({...item, name: name}); setError('')}}
+                      value={item.name}
+                      placeholder="Name for item"
+                      icon="tag"
+                    />
 
-            <StyledInput
-              label="Description"
-              checkValue={checkInputValues}
-              handleInvalidValue={handleInvalidValue}
-              onChangeText={description => {setItem({...item, description: description}); setError('')}} 
-              value={item.description}
-              placeholder="Item description"
-              icon="quote-right"
-            />
+                    <StyledInput
+                      label="Description"
+                      checkValue={doInputValueCheck}
+                      handleInvalidValue={handleInvalidValue}
+                      onChangeText={description => {setItem({...item, description: description}); setError('')}} 
+                      value={item.description}
+                      placeholder="Item description"
+                      icon="quote-right"
+                    />
 
-            <StyledInput
-              label="Quantity"
-              checkValue={checkInputValues}
-              handleInvalidValue={handleInvalidValue}
-              matchType="number"
-              keyboardType="numeric" 
-              onChangeText={amount => {setItem({...item, amount: amount}); setError('')}} 
-              value={item.amount}
-              placeholder="Quantity"
-              icon="cubes"
-            />
-
-            {!!item.id == ""  && // No id
-              <View>
-                <Text style={styles.buttonLabel}>
+                    <StyledInput
+                      label="Quantity"
+                      checkValue={doInputValueCheck}
+                      handleInvalidValue={handleInvalidValue}
+                      matchType="number"
+                      keyboardType="numeric" 
+                      onChangeText={amount => {setItem({...item, amount: amount}); setError('')}} 
+                      value={item.amount}
+                      placeholder="Quantity"
+                      icon="cubes"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+          {/* Footer */}
+          <View style={[{width:"100%", alignItems:"center"}]}>
+            {/* Add button */}
+            <View style={{alignItems:"center"}}>
+              {!!item.id == ""  && // No id
+                <>
+                <Text style={{color:colors.text}}>
                   Save with a barcode (optional)
                 </Text>
-                <SolidButton 
+                <SolidButton
+                  color="warning"
+                  style={{width:200}}
                   onPress={() => 
                     navigation.navigate('Barcode Scanner', {
                       collection: route.params.collection,
@@ -157,14 +183,18 @@ export const AddItem = ({ navigation, route }) => {
                   title="Scan barcode"
                   icon="camera"
                 />
-              </View>
-            }  
-            <SolidButton 
-              onPress={() => setCheckInputValues(checkInputValues + 1) } 
-              title={route.params.edit ? "Save" : "Add item"}
-              icon={route.params.edit ? "check" : "plus"}
-            />
-            {!!error && <Text style={styles.error}>{error}</Text>}
-        </View>
+                </>
+              }  
+              <SolidButton
+                style={{width:200}}
+                onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 
+                title={route.params.edit ? "Save" : "Add item"}
+                icon={route.params.edit ? "check" : "plus"}
+              />
+              {!!error && <Text style={styles.error}>{error}</Text>}
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+        </>
     )
 }

@@ -26,14 +26,21 @@ export const addCollection = (name, color) => {
           resolve(name)
         }
       })
+      .catch(e => reject(e.code))
     })
   }
   
   export const removeCollection = (name) => {
-    remove(ref(
-      database, 'users/' + auth.currentUser.uid + '/collections/' + name
-    ))
-    remove(ref(
-      database, 'users/' + auth.currentUser.uid + '/itemdata/' + name
-    ))
+    return new Promise((resolve, reject) => {
+        remove(ref(
+            database, 'users/' + auth.currentUser.uid + '/collections/' + name
+        ))
+        .catch(e => reject(e.code))
+        remove(ref(
+            database, 'users/' + auth.currentUser.uid + '/itemdata/' + name
+        ))
+        .catch(e => reject(e.code))
+        
+        resolve()
+    })
 }

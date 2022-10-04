@@ -9,6 +9,7 @@ import { ColorPicker } from './components/ColorPicker';
 import { SolidButton } from './components/SolidButton';
 import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
+import { Divider } from 'react-native-elements';
 
 export const AddCollection = ({ navigation, route }) => {
     const colors = useTheme().colors;
@@ -46,34 +47,52 @@ export const AddCollection = ({ navigation, route }) => {
     }
 
     return(
-        <KeyboardAvoidingView style={[styles.container, {alignItems:"center"}]}>
-            <View style={[styles.inputBox]}>
-                <StyledInput
-                    label="Collection name"
-                    style={{width:50}}
-                    onChangeText={name => {setName(name); setError('')}} 
-                    value={name}
-                    placeholder="Name for collection"
-                    icon="tag"
-                    iconColor={currentColor === null ? colors.reverse.card : currentColor}
-                    checkValue={checkInputValues}
-                    handleInvalidValue={handleInvalidValue}
-                />
-                <ColorPicker
-                  onColorChange={(color) => setCurrentColor(color)}
-                />
-                <View style={{marginTop:100, alignItems:"center"}}>
-                    <Text style={styles.error}>
-                        {error}
-                    </Text>
-                    <SolidButton
-                      style={{width: 200}}
-                      onPress={() => setCheckInputValues(checkInputValues + 1)} 
-                      title="Add item"
+      <>
+      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
+        <View style={{flex:1}}>
+          <View style={{height:"100%", justifyContent:"center"}}>
+            {/* Main container */}
+            <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+              <View style={{width:"100%"}}>
+              <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Item details</Text>
+              <Divider color={colors.reverse.card} style={{marginVertical:10}} />
+                <View>
+                  <StyledInput
+                      label="Collection name"
+                      style={{width:50}}
+                      matchType="text"
+                      onChangeText={name => {setName(name); setError('')}} 
+                      value={name}
+                      placeholder="Name for collection"
+                      icon="tag"
+                      iconColor={currentColor === null ? colors.reverse.card : currentColor}
+                      checkValue={checkInputValues}
+                      handleInvalidValue={handleInvalidValue}
+                  />
+                  <View style={{alignItems:"center"}}>
+                    <ColorPicker
+                      onColorChange={(color) => setCurrentColor(color)}
                     />
+                  </View>
                 </View>
+              </View>
             </View>
-        </KeyboardAvoidingView>
+          </View>
+        </View>
+        {/* Footer */}
+        <View style={[{width:"100%", alignItems:"center"}]}>
+          {/* Add button */}
+          <View style={{alignItems:"center"}}>
+            <Text style={styles.error}>{error}</Text>
+              <SolidButton
+                style={{width: 200}}
+                onPress={() => setCheckInputValues(checkInputValues + 1)} 
+                title="Confirm"
+              />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+      </>
     )
 }
 

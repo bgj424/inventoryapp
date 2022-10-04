@@ -5,14 +5,16 @@ import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 // Customizable button with preset colors and styling
-// Additional props are:
-// icon, iconColor
+/**
+ * @param props.icon fontawesome icon name
+ * @param props.iconColor icon color
+ */
 export const SolidButton = (props) => {
     const colors = useTheme().colors;
 
     return (
         <TouchableOpacity 
-            onPress={props.onPress}
+            {...props}
             style={[
                 styles.buttonSolid, {
                     backgroundColor: (colors[props.color] ?? props.color) ?? colors.primary,
@@ -25,7 +27,7 @@ export const SolidButton = (props) => {
                     <Icon
                         style={{marginRight: props.title ? 10 : 0}}
                         name={props.icon}
-                        size={20}
+                        size={props.iconSize ?? 20}
                         color={props.iconColor ?? "white"}
                     />
                 }

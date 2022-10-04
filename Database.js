@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, } from "firebase/database";
 import { getAuth } from 'firebase/auth';
+import { getStorage, ref } from "firebase/storage";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -9,17 +10,11 @@ import { getAuth } from 'firebase/auth';
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 
 const firebaseConfig = {
-    apiKey: "",
-    authDomain: "",
-    databaseURL: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: "",
-    measurementId: ""
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth();
-export const database = getDatabase(app)
+export const database = getDatabase(app);
+export const storage = getStorage(app);
+

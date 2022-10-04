@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { auth } from './Database'
 import { StyleSheet, Text, View, Button} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Input, LinearProgress } from 'react-native-elements';
 
-export const LoadingScreen = () => {
+export const LoadingScreen = ( navigation ) => {
     
     return (
         <View style={styles.loadingContainer}>

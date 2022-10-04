@@ -6,12 +6,14 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 import { checkInputValue } from '../functions/checkInputValue';
 
-// Input element with styling and error messages
-// Additional props are:
-//  matchType (type of value prop), 
-//  handleInvalidValue - call function in parent when value prop is invalid,
-//  icon, iconColor,
-//  checkValue - call the checkvalue function anytime
+/**
+ * @param props.handleInvalidValue function to call when value is invalid
+ * @param props.icon fontawesome icon name
+ * @param props.iconColor icon color
+ * @param {boolean} props.checkValue call value check on input element
+ * @param {string} props.matchType if the value needs to match specific type (text||number||email||password||passwordMatch||{match: Custom condition, errMsg: Custom error})
+ */
+
 export const StyledInput = (props) => {
     const colors = useTheme().colors;
     const inputRef = createRef();
@@ -41,17 +43,17 @@ export const StyledInput = (props) => {
     }
 
     return (
-        <Input 
-            label={props.label}
+        <Input
+            {...props}
             keyboardType={props.keyboardType}
             errorMessage={error.display ? error.message : ''}
             ref={inputRef}
             style={[styles.input, {...props.style, color: colors.text}]}
             onChangeText={props.onChangeText}
             value={props.value ?? ''}
-            placeholder={props.placeholder}
             onChange={() => { checkValue(false) }}
             onBlur={() => { checkValue(true) }}
+            labelStyle={{color: colors.text}}
             leftIcon={
                 <Icon 
                     name={props.icon} 

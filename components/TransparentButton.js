@@ -5,13 +5,16 @@ import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 // Button with preset colors and styling
-// Additional props are:
-// icon, iconColor
+/**
+ * @param props.icon fontawesome icon name
+ * @param props.iconColor icon color
+ */
 export const TransparentButton = (props) => {
     const colors = useTheme().colors;
 
     return (
-        <TouchableOpacity 
+        <TouchableOpacity
+            {...props}
             onPress={props.onPress}
             style={[
                 styles.buttonSolid, {
@@ -25,7 +28,7 @@ export const TransparentButton = (props) => {
                     <Icon
                         style={{marginRight: props.title ? 10 : 0}}
                         name={props.icon}
-                        size={20}
+                        size={props.iconSize ?? 20}
                         color={props.iconColor ?? colors.reverse.card}
                     />
                 }
@@ -34,7 +37,8 @@ export const TransparentButton = (props) => {
                     numberOfLines={1} 
                     adjustsFontSizeToFit={true}
                     style={{
-                        color: props.titleColor ?? colors.text,
+                        textDecorationLine: "underline",
+                        color: props.titleColor ?? "#1f349c",
                         fontSize: 15,
                     }}
                 >

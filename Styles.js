@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-
 export const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -18,7 +17,7 @@ export const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: "column",
-        margin: 5,
+        margin: 5
     },
     inputBox: {
       margin: 20,
@@ -27,8 +26,8 @@ export const styles = StyleSheet.create({
     input: {
       padding: 10,
     },
-    buttonLabel: {
-      marginBottom: 5, 
-      marginTop: 15
-    },
+    buttonContainer: {
+        width: 200,
+        alignItems: 'center',
+    }
 });
