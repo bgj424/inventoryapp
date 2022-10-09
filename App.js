@@ -5,7 +5,6 @@ import { RegistrationScreen } from './Registration';
 import { Frontpage } from './Home';
 import { AddCollection } from './AddCollection';
 import { AddItem } from './AddItem';
-import { AddImage } from './AddImage';
 import { SettingsScreen, Settings } from './Settings';
 import { EditProfile } from './EditProfile';
 import { LoadingScreen } from './Misc';
@@ -46,7 +45,6 @@ const HomeNavigator = () => {
         <HomeStack.Screen name="Frontpage" component={Frontpage} />
         <HomeStack.Screen name="Settings" component={SettingsScreen} />
         <HomeStack.Screen name="Edit Profile" component={EditProfile} />
-        <HomeStack.Screen name="Add Image" component={AddImage} />
     </HomeStack.Navigator>
   )
 }
@@ -60,12 +58,17 @@ const ItemsNavigator = () => {
         options={({ route }) => ({ 
           title: route.params.collection ?? "Collection",
           headerStyle: {
-            backgroundColor: route.params.color,
+            backgroundColor: route.params.color
           },
         })} 
       />
       <ItemsStack.Screen name="Add Item" component={AddItem} 
-        options={({ route }) => ({ title: route.params.edit ? "Edit Item Information" : "Add Item" })} 
+        options={({ route }) => ({ 
+          title: route.params.edit ? "Edit Item Information" : "Add Item",
+          headerStyle: {
+            backgroundColor: route.params.color
+          },
+        })} 
       />
       <ItemsStack.Screen name="Barcode Scanner" component={BarcodeScanner} />
     </ItemsStack.Navigator>

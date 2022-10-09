@@ -1,6 +1,17 @@
-export function convertUnix(unix) {
+export function convertUnix(unix, showMinutes) {
     var d = new Date(unix)
-    return (
-        d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate()
-    )
+    if(!showMinutes)
+        return (
+            d.getFullYear() + "-" + 
+            ('0' + (d.getMonth()+1)).slice(-2) + "-" + 
+            ('0' + d.getDate()).slice(-2)
+        )
+    else
+        return (
+            d.getFullYear() + "-" + 
+            ('0' + (d.getMonth()+1)).slice(-2) + "-" + 
+            ('0' + d.getDate()).slice(-2) + " " +
+            ('0' + d.getHours()).slice(-2) + ":" +
+            ('0' + d.getMinutes()).slice(-2)
+        )
 }

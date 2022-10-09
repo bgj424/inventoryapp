@@ -45,70 +45,69 @@ export const AddItem = ({ navigation, route }) => {
                 description: itemSnapshot.description
               })
             }
-
             return item
           })
         }
-
         return () => {
         };
       }, [route])
-
     );
 
     useEffect(() => {
-        if(doInputValueCheck && !invalidInputsList.length > 0) {
-            submit()
-        }
+      if(doInputValueCheck && !invalidInputsList.length > 0) {
+        submit()
+      }
     }, [doInputValueCheck])
 
     // Function called by Styled Input
     const handleInvalidValue = (inputName, valueIsInvalid) => {
-        invalidInputsList =
-            updateInvalidInputsList(
-                invalidInputsList, inputName, valueIsInvalid
-            ) 
+      invalidInputsList =
+        updateInvalidInputsList(
+          invalidInputsList, inputName, valueIsInvalid
+        ) 
     }
 
     const submit = () => {
-        setError('')
-        let errMsg
-        
-        // Add new item
-        if(!route.params.edit) {
-          addItem(
-              route.params.collection, 
-              item.id ?? item.name, item.name, 
-              item.description ?? null, item.amount
-          )
-          .catch(e => {
-              errMsg = "Error while adding item (" + e.code + ")"
-          })
+      setError('')
+      let errMsg
+      
+      // Add new item
+      if(!route.params.edit) {
+        addItem(
+          route.params.collection, 
+          item.name, 
+          item.amount,
+          item.barcode,
+          item.description
+        )
+        .catch(e => {
+          errMsg = "Error while adding item (" + e.code + ")"
+        })
 
-        // Edit already existing item
-        } else {
-            saveItem(
-              route.params.collection, 
-              item.id ?? item.name, item.name, 
-              item.description, item.amount
-            )
-            saveItemInfo(
-              item.id, 
-              item.name, 
-              item.description,
-              item.barcode
-            )
-        }
+      // Edit already existing item
+      } else {
+        saveItem(
+          route.params.collection, 
+          item.name,
+          item.amount,
+          item.id,
+          item.description
+        )
+        saveItemInfo(
+          item.id, 
+          item.name, 
+          item.description,
+          item.barcode
+        )
+      }
 
-        if(!errMsg) {
-          navigation.navigate('Item List', {
-              collection: route.params.collection,
-              item: {
-                  name: item.name,
-                  description: item.description,
-              }
-          })
-        } else setError(errMsg)
+      if(!errMsg) {
+        navigation.navigate('Item List', {
+          collection: route.params.collection,
+          color: route.params.color,
+          item: {...item}
+        })
+      } else setError(errMsg)
     }
 
     return(
@@ -145,14 +144,14 @@ export const AddItem = ({ navigation, route }) => {
                     />
 
                     <StyledInput
-                      label="Quantity"
+                      label="Amount"
                       checkValue={doInputValueCheck}
                       handleInvalidValue={handleInvalidValue}
                       matchType="number"
                       keyboardType="numeric" 
                       onChangeText={amount => {setItem({...item, amount: amount}); setError('')}} 
                       value={item.amount}
-                      placeholder="Quantity"
+                      placeholder="Amount"
                       icon="cubes"
                     />
                   </View>
@@ -175,9 +174,8 @@ export const AddItem = ({ navigation, route }) => {
                   onPress={() => 
                     navigation.navigate('Barcode Scanner', {
                       collection: route.params.collection,
-                      name: item.name,
-                      description: item.description,
-                      amount: item.amount
+                      color: route.params.color,
+                      item: {...item}
                     }
                   )} 
                   title="Scan barcode"

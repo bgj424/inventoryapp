@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, KeyboardAvoidingView, ImageBackground } from 'react-native';
 import { database, auth } from './Database';
-import { userSignIn, userSignOut, registerAccount } from './database_functions/UserAuth';
+import { userSignIn, userSignOut, registerAccount, GoogleAuth } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Divider, Avatar } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
@@ -11,6 +11,7 @@ import { useTheme } from '@react-navigation/native';
 import { styles } from './Styles'
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
 import { AuthDialogsComponent } from './components/AuthDialogsComponent';
+import { GoogleSignin, GoogleSigninButton, statusCodes, } from '@react-native-google-signin/google-signin';
 
 export const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -96,6 +97,12 @@ export const LoginScreen = ({ navigation }) => {
                     onPress={() => setVisibleDialog("passwordreset")}
                     title="Forgot password" 
                   />
+                  <GoogleSigninButton
+                    style={{ width: 192, height: 48 }}
+                    size={GoogleSigninButton.Size.Wide}
+                    color={GoogleSigninButton.Color.Dark}
+                    onPress={GoogleSignin}
+                  />;
                 </View>
               </View>
             </View>

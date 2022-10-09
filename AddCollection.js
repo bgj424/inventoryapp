@@ -3,21 +3,34 @@ import { addCollection } from './database_functions/CollectionData';
 import { changeUserData } from './database_functions/UserData'
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useTheme, useFocusEffect } from '@react-navigation/native';
 import { increment } from "firebase/database";
 import { ColorPicker } from './components/ColorPicker';
 import { SolidButton } from './components/SolidButton';
 import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
-import { Divider } from 'react-native-elements';
+import { Divider, Dialog } from 'react-native-elements';
 
 export const AddCollection = ({ navigation, route }) => {
     const colors = useTheme().colors;
     const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [currentColor, setCurrentColor] = useState(null);
+    const [visibleDialog, setVisibleDialog] = useState('');
     const [checkInputValues, setCheckInputValues] = useState(false);
     let invalidInputsList = [];
+
+    // Get collection information if it exists
+    useFocusEffect(
+      React.useCallback(() => {
+        if(route.params?.collection) {
+          setName(route.params?.collection)
+          setCurrentColor(route.params?.color)
+        }
+        return () => {
+        };
+      })
+    )
 
     const add = () => {
         setError('')
@@ -84,14 +97,53 @@ export const AddCollection = ({ navigation, route }) => {
           {/* Add button */}
           <View style={{alignItems:"center"}}>
             <Text style={styles.error}>{error}</Text>
+            {!!route.params?.edit === true &&
+            <View>
               <SolidButton
                 style={{width: 200}}
-                onPress={() => setCheckInputValues(checkInputValues + 1)} 
-                title="Confirm"
+                onPress={() => setVisibleDialog("delete")} 
+                title="Delete collection"
+                color="error"
               />
+            </View>
+            }
+            <SolidButton
+              style={{width: 200}}
+              onPress={() => setCheckInputValues(checkInputValues + 1)} 
+              title="Confirm"
+            />
           </View>
         </View>
       </KeyboardAvoidingView>
+      <Dialog
+        isVisible={visibleDialog === "delete" ? true : false}
+        onBackdropPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+        overlayStyle={{backgroundColor: colors.card}}
+      >
+          <Dialog.Title titleStyle={{color: colors.text}} title="Confirm deletion" />
+          <Text style={{color: colors.text}}>Are you sure you want 
+            to delete collection {route.params?.collection}?
+          </Text>
+          <View style={{width:350}}>
+            <Dialog.Actions>
+              <SolidButton
+                style={{width: 100}}
+                title="Cancel"
+                color="error"
+                onPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+              />
+              <SolidButton
+                style={{width: 100}}
+                title="Confirm"
+                color="success"
+                onPress={() => {
+                  removeCollection(route.params?.collection)
+                  navigation.navigate('Collections')
+                }}
+              />
+            </Dialog.Actions>
+          </View>
+      </Dialog>
       </>
     )
 }

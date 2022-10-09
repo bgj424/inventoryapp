@@ -1,6 +1,9 @@
 import { database, auth } from '../Database'
 import { ref, get, set, child, remove, serverTimestamp } from "firebase/database";
 
+export const editCollection = (name, color) => {
+}
+
 // Add new item collection
 export const addCollection = (name, color) => {
     return new Promise((resolve, reject) => {

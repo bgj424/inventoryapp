@@ -1,9 +1,7 @@
-import * as db from './Database'
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, FlatList } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Camera } from 'expo-camera';
 import { useFocusEffect } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { styles } from './Styles'
 
 /* This uses the barcode scanner example code from Expo docs
@@ -33,11 +31,8 @@ export const BarcodeScanner = ({ navigation, route }) => {
       setScanned(true);
       
       navigation.navigate('Add Item', {
-        item: {
-          collection: route.params.collection,
-          barcode: data,
-          item: route.params.name,
-          description: route.params.description,
+        ...route.params, item: {
+          barcode: data
         }
       })
     }

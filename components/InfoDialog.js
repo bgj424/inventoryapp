@@ -19,7 +19,7 @@ export const InfoDialog = (props) => {
         changeVisibleDialog={props.changeVisibleDialog}
         isVisible={props.visibleDialog === "info" ? true : false}
       >
-        <Dialog.Title titleStyle={{color: colors.text}} title={props.title} />
+        <Dialog.Title titleStyle={{color: colors.text}} title={props?.title} />
         <View style={{flexDirection:"row"}}>
         {!!props.icon &&
           <Icon
@@ -29,10 +29,20 @@ export const InfoDialog = (props) => {
               color={props.iconColor ?? colors.primary3}
           />
         }
-        <Text style={{fontSize:16}}>{props.message}</Text>
+        <Text style={{fontSize:16}}>{props?.message}</Text>
         </View>
         <View style={{alignItems: "center", marginTop: 10}}>
           <View style={{flexDirection: "row"}}>
+            {props.secondaryButton 
+            ?
+              <SolidButton
+                style={{width: 150}}
+                title={props?.secondaryButton?.title}
+                color={props?.secondaryButton?.color}
+                icon={props?.secondaryButton?.icon}
+                onPress={() => props?.secondaryButton?.onPress}
+              />
+            :null}
             <SolidButton
                 style={{width: 150}}
                 title="Close"

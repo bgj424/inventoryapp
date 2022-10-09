@@ -10,6 +10,14 @@ import { getStorage, ref } from "firebase/storage";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 
 const firebaseConfig = {
+    apiKey: "AIzaSyBySD80DqLntOYzU5MClQLTyezFpztNnOY",
+    authDomain: "inventoryapp-b3fb5.firebaseapp.com",
+    databaseURL: "https://inventoryapp-b3fb5-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "inventoryapp-b3fb5",
+    storageBucket: "inventoryapp-b3fb5.appspot.com",
+    messagingSenderId: "74240360376",
+    appId: "1:74240360376:web:5a11e112af1e68807a594d",
+    measurementId: "G-T2SSHRQ808"  
 };
 
 // Initialize Firebase

@@ -186,7 +186,7 @@ export const SettingsScreen = ({ navigation, route }) => {
                       Registration date
                     </ListItem.Title>
                     <ListItem.Subtitle style={{color: colors.subtitle}}>
-                      {convertUnix(user?.registrationDate)}
+                      {convertUnix(user?.registrationDate, false)}
                     </ListItem.Subtitle>
                   </View>
                 </ListItem.Content>
@@ -195,12 +195,6 @@ export const SettingsScreen = ({ navigation, route }) => {
           </View>
         </View>
       </View>
-      <SolidButton 
-          onPress={() => {getUserData().then(res => console.log(res))}}
-          icon="pencil"
-          color="warning"
-          style={{width:40, marginTop:25, marginLeft:-50}}
-      />
       {/* Footer */}
       <View style={[{width:"100%",flexDirection:"row",alignItems:"center"}]}>
         {/* Add button */}

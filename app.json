@@ -17,18 +17,28 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bgj424.InventoryApp"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.bgj424.InventoryApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "description": "",
-    "githubUrl": "https://github.com/bgj424/inventoryapp"
+    "githubUrl": "https://github.com/bgj424/inventoryapp",
+    "extra": {
+      "eas": {
+        "projectId": "cefb0daf-62f9-4bb2-a1c5-9b901d27327f"
+      }
+    },
+    "plugins": ["@react-native-google-signin/google-signin"]
   }
 }
