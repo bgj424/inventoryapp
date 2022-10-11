@@ -17,6 +17,7 @@ import {
 } from 'firebase/auth';
 import { serverTimestamp } from "firebase/database";
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { UserContext } from '../AppContext';
 
 export const registerAccount = (email, password, username) => {
     return new Promise((resolve, reject) => {
@@ -92,22 +93,20 @@ export const silentGoogleSignIn = async () => {
     }
 };
 
-// Somewhere in your code
 export const GoogleSignIn = async () => {
     try {
         await GoogleSignin.hasPlayServices();
         const userInfo = await GoogleSignin.signIn();
-        //this.setState({ userInfo });
+        resolve(userInfo)
     } catch (error) {
         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-            // user cancelled the login flow
+            reject("Google Sign in cancelled")
         } else if (error.code === statusCodes.IN_PROGRESS) {
-            // operation (e.g. sign in) is in progress already
+            reject("Google Sign in in progress")
         } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-            // play services not available or outdated
+            reject("Google Play service not available")
         } else {
-            // some other error happened
+            reject("Error while trying to sign in")
         }
     }
 };
-

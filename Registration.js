@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, KeyboardAvoidingView, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, Button, KeyboardAvoidingView, ImageBackground, Keyboard, ScrollView } from 'react-native';
 import { database, auth } from './Database';
 import { userSignIn, userSignOut, registerAccount } from './database_functions/UserAuth';
 import { updateUserProfile, changeUserData } from './database_functions/UserData';
@@ -16,7 +16,8 @@ export const RegistrationScreen = ( { navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    const [doInputValueCheck, setDoInputValueCheck] = useState(false)
+    const [doInputValueCheck, setDoInputValueCheck] = useState(false);
+    const [keyboardStatus, setKeyboardStatus] = useState('');
     const [userName, setUserName] = useState('');
     const [error, setError] = useState('');
     let invalidInputsList = [];
@@ -39,6 +40,21 @@ export const RegistrationScreen = ( { navigation }) => {
         }
     }, [doInputValueCheck])
 
+    useEffect(() => {
+        const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+            setKeyboardStatus(true);
+        });
+        const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+            setKeyboardStatus(false);
+        });
+    
+        return () => {
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
+    }, []);
+
+
     return (
         <>
         {/* Background elements */}
@@ -48,7 +64,7 @@ export const RegistrationScreen = ( { navigation }) => {
             source={require("./assets/cubes.png")}
             style={{width: '100%',opacity:0.95, height: '100%',justifyContent:"center",alignContent:"center",alignItems: "center"}}
         > 
-        <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 70}]}>
+        <ScrollView contentContainerStyle={{alignItems:"center"}} style={[{flex:1, padding: 20}]}>
         {/* InputContainer Main */}
         <View style={[{width:"100%", flexDirection:"row", alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
           <View style={{width:"100%"}}>
@@ -117,7 +133,7 @@ export const RegistrationScreen = ( { navigation }) => {
             </View>
           </View>
         </View>
-        </KeyboardAvoidingView>
+        </ScrollView>
         </ImageBackground>
         </View>
     </>

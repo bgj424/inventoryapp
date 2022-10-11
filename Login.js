@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, KeyboardAvoidingView, ImageBackground } from 'react-native';
 import { database, auth } from './Database';
-import { userSignIn, userSignOut, registerAccount, GoogleAuth } from './database_functions/UserAuth';
+import { userSignIn, userSignOut, registerAccount, GoogleSignIn } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Divider, Avatar } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
@@ -55,7 +55,7 @@ export const LoginScreen = ({ navigation }) => {
           source={require("./assets/cubes.png")}
           style={{width: '100%',opacity:0.95, height: '100%',justifyContent:"center",alignContent:"center",alignItems: "center"}}
       > 
-      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 70}]}>
+      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 20}]}>
         {/* Input Container Main */}
         <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
           <View style={{width:"100%"}}>
@@ -87,29 +87,27 @@ export const LoginScreen = ({ navigation }) => {
             {/* ButtonContainer */}
             <View style={{alignItems:"center"}}>
               {!!error && <Text style={styles.error}>{error.code}</Text>}
-              <View style={{width:200}}>
-                <View>
-                  <SolidButton
-                    onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 
-                    title="Log in" 
-                  />
-                  <TransparentButton
-                    onPress={() => setVisibleDialog("passwordreset")}
-                    title="Forgot password" 
-                  />
-                  <GoogleSigninButton
-                    style={{ width: 192, height: 48 }}
-                    size={GoogleSigninButton.Size.Wide}
-                    color={GoogleSigninButton.Color.Dark}
-                    onPress={GoogleSignin}
-                  />;
-                </View>
-              </View>
+              <SolidButton
+                style={{width:185, marginBottom:10}}
+                onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 
+                title="Log in" 
+              />
+              <GoogleSigninButton
+                style={{ width: 192, height: 48 }}
+                size={GoogleSigninButton.Size.Wide}
+                color={GoogleSigninButton.Color.Dark}
+                onPress={GoogleSignIn}
+              />
+              <TransparentButton
+                style={{width:"60%"}}
+                onPress={() => setVisibleDialog("passwordreset")}
+                title="Forgot password" 
+              />
             </View>
           </View>
         </View>
         {/* InputContainer registration*/}
-        <View style={[{marginTop:50,width:"70%", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
+        <View style={[{marginTop:20,width:"70%", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
             <View style={{alignItems:"center"}}>
               <Text style={{color:colors.text, fontSize:16, fontWeight:"bold"}}>No account?</Text>
               <Text style={{color:colors.text, fontSize:16, marginBottom: 10}}>Register now!</Text>

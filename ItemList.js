@@ -26,12 +26,15 @@ export const ItemList = ({ navigation, route }) => {
     const [dialogMessage, setDialogMessage] = useState({});
     const [visibleDialog, setVisibleDialog] = useState('');
     const colors = useTheme().colors;
-  
+
+    const sortedItems = (items) => React.useMemo(() => 
+      sortListData(items), [items, sortedBy, reverseSortedBy]
+    );
+
     const changeVisibleDialog = (value, data = null) => { 
         if(value !== null) setVisibleDialog(value)
         if(data) setDialogMessage(data)
     }
-
 
     // Updating list from db
     useEffect(() => {
@@ -45,7 +48,7 @@ export const ItemList = ({ navigation, route }) => {
               item => ({...item[1], key: item[0]})
             )
           setItems(flatlistArray)
-          navigation.setOptions({ title: `${route.params.collection} (${flatlistArray.length ?? 0} items)`, headerTintColor: route.params.color ? '#fff' : colors.text })
+          navigation.setOptions({ title: `${route.params.collection} (${flatlistArray.length ?? 0} items)` })
         } else {
           setItems('')
         }
@@ -92,7 +95,7 @@ export const ItemList = ({ navigation, route }) => {
 
     const itemDataElement = ({ item }) => {
       return(
-        <ListItem bottomDivider containerStyle={{backgroundColor:colors.background}}>
+        <ListItem bottomDivider containerStyle={{backgroundColor:colors.background, height: 30, paddingVertical: 0}}>
           <ListItem.Content>
             <View style={{flexDirection:"row"}}>
               <View style={{flex:1}}>
@@ -108,7 +111,7 @@ export const ItemList = ({ navigation, route }) => {
                   {item.title}
                 </ListItem.Title>
               </View>
-              <View style={{flex:9}}>
+              <View style={{flex:6}}>
                 <ListItem.Subtitle style={{color: colors.subtitle, width:200}}>
                   {item.value}
                 </ListItem.Subtitle>
@@ -140,19 +143,18 @@ export const ItemList = ({ navigation, route }) => {
               ])
             }
           }}
-          containerStyle={{backgroundColor: expanded ? colors.border : colors.card}}
+          containerStyle={{backgroundColor: expanded ? colors.border : colors.card, height: 40, paddingVertical: 0}}
           content={
             <> 
             {/* Accordion top */}
             <View style={{flex:1, alignItems:"flex-start"}}>
-            <Badge 
-              containerStyle={{flex:5}}
-              value={item.amount}
-              textStyle={{fontWeight:"bold"}}
-              badgeStyle={{
-                backgroundColor: route.params.color ?? colors.primary, marginTop:3
-              }}
-            />
+              <Badge 
+                value={item.amount}
+                textStyle={{fontWeight:"bold"}}
+                badgeStyle={{
+                  backgroundColor: route.params.color ?? colors.primary, marginTop:3
+                }}
+              />
             </View>
             <ListItem.Title style={{color: colors.text, flex:2}}>
               {item.name}
@@ -175,10 +177,10 @@ export const ItemList = ({ navigation, route }) => {
               data={itemData(item)}
               renderItem={itemDataElement}
             />
-            <View style={{alignItems:"center", backgroundColor:colors.background}}>
+            <View style={{alignItems:"center", backgroundColor:colors.background, height:50}}>
               <View style={{flexDirection:"row"}}>
                 <SolidButton
-                  style={{width: 150}}
+                  style={{width:"50%", height:"100%", borderRadius:0}}
                   icon="trash"
                   color="error"
                   onPress={() => {
@@ -186,7 +188,7 @@ export const ItemList = ({ navigation, route }) => {
                   }}
                 />
                 <SolidButton
-                  style={{width: 150}}
+                  style={{width:"50%", height:"100%", borderRadius:0}}
                   icon="edit"
                   color="warning"
                   onPress={() => {
@@ -213,26 +215,26 @@ export const ItemList = ({ navigation, route }) => {
   
     return(
       <>
-      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
-        <View style={{flex:1}}>
-          {/* Main container */}
-          <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
-            <View style={{width:"100%"}}>
+      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 10}]}>
+        {/* Main container */}
+        <View style={[{height: "100%", width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:10}]}>
+          <View style={{width: "100%"}}>
+            {/* Sorting */}
+            <View style={{width: "100%", height: "10%"}}>
               <Text style={{color:colors.subtle, fontSize:13, marginLeft:10}}>Sorted by:</Text>
-              <View style={{flexDirection:"row"}}>
-                {/* Sorting */}
+              <View style={{flexDirection:"row", width: "100%"}}>
                 <ButtonGroup
                   buttons={['Name', 'Added', 'Amount']}
                   onPress={(value) => {
                     setSortedBy(value)
                   }}
                   selectedIndex={sortedBy}
-                  containerStyle={{backgroundColor: colors.background, width:400}}
+                  containerStyle={{backgroundColor: colors.background, flex: 1, height: 30}}
                   selectedButtonStyle={{backgroundColor: colors.primary}}
                   textStyle={{color: colors.text}}
                 />
                 <TransparentButton 
-                  style={{width:40, borderColor:"white", marginLeft:-10}}
+                  style={{width: 40, marginLeft: -5}}
                   icon={reverseSortedBy ? "arrow-up": "arrow-down"}
                   iconColor={reverseSortedBy ? colors.warning : colors.primary}
                   iconSize={25}
@@ -241,48 +243,56 @@ export const ItemList = ({ navigation, route }) => {
                   }}
                 />
               </View>
-              {/* Item List */}
-              {items !== [] ? <>
-                <Text style={{color:colors.extradark, fontSize:20, fontWeight:"bold", marginTop:5}}>Items</Text>
-                <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
-                <FlatList
-                  style={{minHeight:500}}
-                  data={sortListData(items)}
-                  renderItem={listElement}
-                />
-              </> : null}
+            </View>
+            
+            {/* Item List */}
+            <View style={{width: "100%", height: "90%"}}>
+              <Text style={{color:colors.primary3, fontSize:20, fontWeight:"bold", marginTop:10}}>Items</Text>
+              <Divider color={colors.reverse.card} style={{marginVertical:10}} />
+              <View>
+                {items !== [] ? <>
+                  <FlatList
+                    data={sortedItems(items)}
+                    renderItem={listElement}
+                    width={"100%"}
+                    height={"75%"}
+                  />
+                </> : null}
+              </View>
             </View>
           </View>
         </View>
         {/* Footer */}
-        <View style={[{width:"100%", alignItems:"center"}]}>
-          {/* Add button */}
-          <View style={{flexDirection:"row"}}>
-            <SolidButton
-              style={{width:200}}
-              onPress={() => 
-                navigation.navigate('Add Item', {
-                  collection: route.params.collection,
-                  color: route.params.color
-                })
-              } 
-              title="Add Item"
-              icon="plus"
-              color="primary"
-            />
-            <SolidButton
-              style={{width:200}}
-              onPress={() => {
-                navigation.navigate('New Collection', {
-                  collection: route.params.collection,
-                  color: route.params.color,
-                  edit: true
-                })
-              }}  
-              title="Edit Collection"
-              icon="edit"
-              color="warning"
-            />
+        <View style={[{width:"100%", alignItems:"center", position:"absolute", bottom:0}]}>
+          {/* Save button */}
+          <View style={{alignItems:"center", marginVertical:20, width: "90%"}}>
+            <View style={{flexDirection:"row"}}>
+              <SolidButton
+                style={{width:"50%", marginRight: 5}}
+                onPress={() => 
+                  navigation.navigate('Add Item', {
+                    collection: route.params.collection,
+                    color: route.params.color
+                  })
+                } 
+                title="Add Item"
+                icon="plus"
+                color="primary"
+              />
+              <SolidButton
+                style={{width:"50%", marginLeft: 5}}
+                onPress={() => {
+                  navigation.navigate('New Collection', {
+                    collection: route.params.collection,
+                    color: route.params.color,
+                    edit: true
+                  })
+                }}  
+                title="Edit Collection"
+                icon="edit"
+                color="warning"
+              />
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>

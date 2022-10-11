@@ -15,8 +15,9 @@ import { checkInputValue } from '../functions/checkInputValue';
  */
 
 export const StyledInput = (props) => {
-    const colors = useTheme().colors;
-    const inputRef = createRef();
+    const colors = useTheme().colors
+    const inputRef = createRef()
+    const [hidden, setHidden] = useState(false)
     const [error, setError] = useState({
         message: '',
         display: false
@@ -48,6 +49,7 @@ export const StyledInput = (props) => {
             keyboardType={props.keyboardType}
             errorMessage={error.display ? error.message : ''}
             ref={inputRef}
+            containerStyle={{display: hidden ? "none" : null}}
             style={[styles.input, {...props.style, color: colors.text}]}
             onChangeText={props.onChangeText}
             value={props.value ?? ''}

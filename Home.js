@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Linking, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Linking, ImageBackground, ScrollView } from 'react-native';
 import { database, auth } from './Database';
 import { userSignIn, userSignOut, registerAccount } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -26,7 +26,7 @@ export const Frontpage = ({ navigation }) => {
 
   return (
     <>
-    <KeyboardAvoidingView style={[{flex:1, alignItems:"center", padding: 20}]}>
+    <ScrollView contentContainerStyle={{alignItems:"center"}} style={[{flex:1, padding: 10}]}>
       <View style={{flex:1}}>
         {/* Input Container Main */}
         <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
@@ -39,16 +39,15 @@ export const Frontpage = ({ navigation }) => {
             </View>
             <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
             <View style={{flexDirection:"row"}}>
-              <View style={{flex:1}}>
+              <View style={{marginRight:10}}>
                 <Avatar
-                  onPress={()=>setUser({...user, displayName: "test1"})}
                   title="user"
                   size={65}
                   rounded
                   source={ user?.photoURL ? { uri: user?.photoURL || {} } : require("./assets/user.png")}
                 />
               </View>
-              <View style={{flex:5}}>
+              <View>
                 <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
                   Welcome to Mobile Inventory!
                   You have a total of 0 items
@@ -76,7 +75,7 @@ export const Frontpage = ({ navigation }) => {
               Change preferences and edit account details at Settings
             </Text>
             <SolidButton
-              style={{width:200, marginTop:10}}
+              style={{width:"100%", marginTop:10}}
               onPress={() => navigation.navigate('Settings')} 
               title="Go to Settings"
             />
@@ -98,7 +97,7 @@ export const Frontpage = ({ navigation }) => {
               View your inventory, collections and items at the Items tab
             </Text>
             <SolidButton 
-              style={{width:200, marginTop:10}}
+              style={{width:"100%", marginTop:10}}
               onPress={() => navigation.navigate('Items', { screen: 'Collections' })} 
               title="Go to Items"
             />
@@ -144,34 +143,34 @@ export const Frontpage = ({ navigation }) => {
             </View>
           </View>
         </View>
-      </View>
-      {/* Footer */}
-      <View style={[{width:"100%",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
-        {/* Logout Button */}
-        <View style={{alignItems:"flex-end"}}>
-          <SolidButton
-              style={{width:200, marginBottom:10}}
-              color={colors.extradark}
-              onPress={() => userSignOut()} 
-              title="Log out" 
-          />
+        {/* Footer */}
+        <View style={{alignItems:"center", marginVertical: 20}}>
+          <View style={[{width:"70%", alignItems:"center"}]}>
+            {/* Logout Button */}
+            <SolidButton
+                style={{width:"50%", marginBottom:10}}
+                color={colors.extradark}
+                onPress={() => userSignOut()} 
+                title="Log out" 
+            />
+            {/* App info */}
+            <View style={{flexDirection:"row", borderRadius:5, alignItems:"center"}}>
+              <Ionicons name="logo-react" size={20} color={colors.subtle} style={{marginRight:5}} />
+              <Text style={{color: colors.subtle, fontSize:16, marginRight:6}}>
+                Inventory App (Version 1.0)
+              </Text>
+              <Ionicons name="logo-github" size={20} color={colors.text} style={{marginRight:5, marginLeft: 6}} />
+              <Text 
+                style={{color: colors.primary3, textDecorationLine:"underline", fontSize:16}} 
+                onPress={() => Linking.openURL('https://github.com/bgj424/inventoryapp')}
+              >
+                GitHub&nbsp;
+              </Text>
+            </View>
+          </View>
         </View>
-        {/* App info */}
-        <View style={{flexDirection:"row", borderRadius:5, alignItems:"center"}}>
-          <Ionicons name="logo-react" size={20} color={colors.subtle} style={{marginRight:5}} />
-          <Text style={{color: colors.subtle, fontSize:16, marginRight:6}}>
-            Inventory App (Version 1.0)
-          </Text>
-          <Ionicons name="logo-github" size={20} color={colors.text} style={{marginRight:5, marginLeft: 6}} />
-          <Text 
-            style={{color: colors.primary3, textDecorationLine:"underline", fontSize:16}} 
-            onPress={() => Linking.openURL('https://github.com/bgj424/inventoryapp')}
-          >
-            GitHub&nbsp;
-          </Text>
-        </View>
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
     <InfoDialog
       visibleDialog={visibleDialog}
       changeVisibleDialog={changeVisibleDialog}

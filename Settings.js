@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Switch, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Button, KeyboardAvoidingView, Switch, FlatList, ScrollView } from 'react-native';
 import { database, auth } from './Database';
 import { changePassword } from './database_functions/UserAuth';
 import { changeUserData, getUserAvatar, getUserData } from './database_functions/UserData';
@@ -24,6 +24,7 @@ export const SettingsScreen = ({ navigation, route }) => {
     const [expandAccordions, setExpandAccordions] = useState({userinfo: false})
     const [initialStates, setInitialStates] = useState({theme: theme})
     const [currentStates, setCurrentStates] = useState({theme: theme})
+    const [changed, setChanged] = useState(false)
     const colors = useTheme().colors;
 
     const changeVisibleDialog = (value, data = null) => { 
@@ -36,13 +37,16 @@ export const SettingsScreen = ({ navigation, route }) => {
         if(initialStates.theme !== currentStates.theme) {
             values = {...values, theme: currentStates.theme}
             setInitialStates({...initialStates, theme: currentStates.theme})
-        } if(values)
-            changeUserData(values)
+        } 
+        if(values)
+          changeUserData(values)
+          .then(res => setChanged(false))
+          .catch(e => console.log(e))
     }
 
     return (
       <>
-      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
+      <ScrollView contentContainerStyle={{alignItems:"center"}} style={[{flex:1, padding: 10}]}>
       <View style={{flex:1}}>
         {/* Account Container */}
         <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
@@ -78,8 +82,8 @@ export const SettingsScreen = ({ navigation, route }) => {
             >
               <ListItem.Content>
                 <View style={{flexDirection:"row"}}>
-                  <Ionicons name="moon-outline" size={20} color={colors.text} style={{flex:1}} />
-                  <ListItem.Title style={{color: colors.text, flex: 10}}>
+                  <Ionicons name="moon-outline" size={20} color={colors.text} style={{width: 30}} />
+                  <ListItem.Title style={{color: colors.text}}>
                     Dark mode
                   </ListItem.Title>
                   <ListItem.Subtitle style={{color: colors.subtitle}}>
@@ -92,6 +96,7 @@ export const SettingsScreen = ({ navigation, route }) => {
                     let newTheme = theme === "dark" ? "light" : "dark"
                     setTheme(newTheme)
                     setCurrentStates({...currentStates, theme: newTheme})
+                    setChanged(true)
                 }}
               />
             </ListItem>
@@ -106,10 +111,10 @@ export const SettingsScreen = ({ navigation, route }) => {
                   <Icon
                     name="pencil"
                     size={20}
-                    style={{flex:1}}
+                    style={{width: 30}}
                     color={colors.text}
                   />
-                  <ListItem.Title style={{color: colors.text, flex: 10}}>
+                  <ListItem.Title style={{color: colors.text}}>
                     Edit profile
                   </ListItem.Title>
                   <ListItem.Subtitle style={{color: colors.subtitle}}>
@@ -129,10 +134,10 @@ export const SettingsScreen = ({ navigation, route }) => {
                   <Icon
                     name="lock"
                     size={20}
-                    style={{flex:1}}
+                    style={{width: 30}}
                     color={colors.text}
                   />
-                  <ListItem.Title style={{color: colors.text, flex: 10}}>
+                  <ListItem.Title style={{color: colors.text}}>
                     Change password
                   </ListItem.Title>
                   <ListItem.Subtitle style={{color: colors.subtitle}}>
@@ -155,10 +160,10 @@ export const SettingsScreen = ({ navigation, route }) => {
                     <Icon
                       name="user"
                       size={20}
-                      style={{flex:1}}
+                      style={{width: 30}}
                       color={colors.text}
                     />
-                    <ListItem.Title style={{color: colors.text, flex: 10}}>
+                    <ListItem.Title style={{color: colors.text}}>
                       View user information
                     </ListItem.Title>
                     <ListItem.Subtitle style={{color: colors.subtitle}}>
@@ -195,19 +200,21 @@ export const SettingsScreen = ({ navigation, route }) => {
           </View>
         </View>
       </View>
+      </ScrollView>
       {/* Footer */}
-      <View style={[{width:"100%",flexDirection:"row",alignItems:"center"}]}>
-        {/* Add button */}
-        <View style={{flex:1, alignItems:"center"}}>
-          <SolidButton
-            color="primary"
-            style={{width:200}}
-            onPress={() => saveChanges()}
-            title="Save changes" 
-          />
+      <View style={[{width:"100%", alignItems:"center", position:"absolute", bottom:0}]}>
+        {/* Save button */}
+        <View style={{flexDirection:"row", alignItems:"center"}}>
+          {changed &&
+            <SolidButton
+              color="primary"
+              style={{width:"50%", marginVertical: 20}}
+              onPress={() => saveChanges()}
+              title="Save changes" 
+            />
+          }
         </View>
       </View>
-      </KeyboardAvoidingView>
       <AuthDialogsComponent 
         visibleDialog={visibleDialog}
         changeVisibleDialog={changeVisibleDialog}

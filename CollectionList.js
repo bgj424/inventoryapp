@@ -14,6 +14,10 @@ export const CollectionList = ({ navigation, route }) => {
     const [reverseSortedBy, setReverseSortedBy] = useState(false);
     const colors = useTheme().colors;
 
+    const sortedItems = (items) => React.useMemo(() => 
+      sortListData(items), [items, sortedBy, reverseSortedBy]
+    );
+
     // Setup listener that updates the list
     useEffect(() => {
         onValue(ref(
@@ -76,59 +80,67 @@ export const CollectionList = ({ navigation, route }) => {
     }
 
     return(
-      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
-      <View style={{flex:1}}>
-        {/* Main Container */}
-        <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
-          <View style={{width:"100%"}}>
-          <Text style={{color:colors.subtle, fontSize:13, marginLeft:10}}>Sorted by:</Text>
-            <View style={{flexDirection:"row"}}>
-              <ButtonGroup
-                buttons={['Name', 'Created', 'Item Count']}
-                onPress={(value) => {
-                  setSortedBy(value)
-                }}
-                selectedIndex={sortedBy}
-                containerStyle={{backgroundColor: colors.background, width:400}}
-                selectedButtonStyle={{backgroundColor: colors.primary}}
-                textStyle={{color: colors.text}}
-              />
-              <TransparentButton 
-                style={{width:40, borderColor:"white", marginLeft:-10}}
-                icon={reverseSortedBy ? "arrow-up": "arrow-down"}
-                iconColor={reverseSortedBy ? colors.warning : colors.primary}
-                iconSize={25}
-                onPress={() => {
-                  setReverseSortedBy(!reverseSortedBy)
-                }}
-              />
+      <>
+      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 10}]}>
+        {/* Main container */}
+        <View style={[{height: "100%", width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:10}]}>
+          <View style={{width: "100%"}}>
+            {/* Sorting */}
+            <View style={{width: "100%", height: "10%"}}>
+              <Text style={{color:colors.subtle, fontSize:13, marginLeft:10}}>Sorted by:</Text>
+              <View style={{flexDirection:"row", width: "100%"}}>
+                <ButtonGroup
+                  buttons={['Name', 'Created', 'Item Count']}
+                  onPress={(value) => {
+                    setSortedBy(value)
+                  }}
+                  selectedIndex={sortedBy}
+                  containerStyle={{backgroundColor: colors.background, flex: 1, height: 30}}
+                  selectedButtonStyle={{backgroundColor: colors.primary}}
+                  textStyle={{color: colors.text}}
+                />
+                <TransparentButton 
+                  style={{width: 40, marginLeft: -5}}
+                  icon={reverseSortedBy ? "arrow-up": "arrow-down"}
+                  iconColor={reverseSortedBy ? colors.warning : colors.primary}
+                  iconSize={25}
+                  onPress={() => {
+                    setReverseSortedBy(!reverseSortedBy)
+                  }}
+                />
+              </View>
             </View>
-            {/* Collection List */}
-            {collections !== [] ? <>
-              <Text style={{color:colors.extradark, fontSize:20, fontWeight:"bold", marginTop:5}}>Own collections</Text>
-              <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
-              <FlatList
-                style={{minHeight:500}}
-                data={sortListData(collections) ?? null}
-                renderItem={listElement}
-              />
-            </> : null}
+            
+            {/* Item List */}
+            <View style={{width: "100%", height: "90%"}}>
+              <Text style={{color:colors.primary3, fontSize:20, fontWeight:"bold", marginTop:10}}>Collections</Text>
+              <Divider color={colors.reverse.card} style={{marginVertical:10}} />
+              <View>
+                {collections !== [] ? <>
+                  <FlatList
+                    data={sortedItems(collections) ?? null}
+                    renderItem={listElement}
+                    width={"100%"}
+                    height={"75%"}
+                  />
+                </> : null}
+              </View>
+            </View>
           </View>
         </View>
-      </View>
-      {/* Footer */}
-      <View style={[{width:"100%",flexDirection:"row",alignItems:"center"}]}>
-        {/* Add button */}
-        <View style={{flex:1, alignItems:"center"}}>
-          <SolidButton
-            style={{width:200}}
-            icon="plus" 
-            title="Create new collection" 
-            color="primary"
-            onPress={() => navigation.navigate('New Collection')} 
-          />
+        {/* Footer */}
+        <View style={[{width:"100%", alignItems:"center", position:"absolute", bottom:0}]}>
+          {/* Add button */}
+          <View style={{flexDirection:"row", alignItems:"center"}}>
+            <SolidButton
+              icon="plus" 
+              title="Create new collection" 
+              style={{width:"50%", marginVertical: 20}}
+              onPress={() => navigation.navigate('New Collection')} 
+            />
+          </View>
         </View>
-      </View>
       </KeyboardAvoidingView>
+      </>
     )
 }

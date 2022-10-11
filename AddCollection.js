@@ -10,6 +10,7 @@ import { SolidButton } from './components/SolidButton';
 import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
 import { Divider, Dialog } from 'react-native-elements';
+import { styles } from './Styles';
 
 export const AddCollection = ({ navigation, route }) => {
     const colors = useTheme().colors;
@@ -61,13 +62,13 @@ export const AddCollection = ({ navigation, route }) => {
 
     return(
       <>
-      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 20}]}>
+      <KeyboardAvoidingView style={[{flex:1, alignItems:"center", backgroundColor:colors.background, padding: 10}]}>
         <View style={{flex:1}}>
           <View style={{height:"100%", justifyContent:"center"}}>
             {/* Main container */}
             <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
               <View style={{width:"100%"}}>
-              <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Item details</Text>
+              <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Collection details</Text>
               <Divider color={colors.reverse.card} style={{marginVertical:10}} />
                 <View>
                   <StyledInput
@@ -93,31 +94,33 @@ export const AddCollection = ({ navigation, route }) => {
           </View>
         </View>
         {/* Footer */}
-        <View style={[{width:"100%", alignItems:"center"}]}>
-          {/* Add button */}
-          <View style={{alignItems:"center"}}>
+        <View style={[{width:"100%", alignItems:"center", position:"absolute", bottom:0}]}>
+          {/* Save button */}
+          <View style={{alignItems:"center", marginVertical: 20, width: "90%"}}>
             <Text style={styles.error}>{error}</Text>
-            {!!route.params?.edit === true &&
-            <View>
+            <View style={{flexDirection:"row"}}>
+              {!!route.params?.edit === true &&
+                <SolidButton
+                  style={{width:"50%", marginRight: 5}}
+                  onPress={() => setVisibleDialog("delete")} 
+                  title="Delete collection"
+                  color="error"
+                  icon="trash"
+                />
+              }
               <SolidButton
-                style={{width: 200}}
-                onPress={() => setVisibleDialog("delete")} 
-                title="Delete collection"
-                color="error"
+                style={{width:"50%", marginLeft: 5}}
+                onPress={() => setCheckInputValues(checkInputValues + 1)} 
+                title="Confirm"
+                icon="check"
               />
             </View>
-            }
-            <SolidButton
-              style={{width: 200}}
-              onPress={() => setCheckInputValues(checkInputValues + 1)} 
-              title="Confirm"
-            />
           </View>
         </View>
       </KeyboardAvoidingView>
       <Dialog
         isVisible={visibleDialog === "delete" ? true : false}
-        onBackdropPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+        onBackdropPress={() => setVisibleDialog("")}
         overlayStyle={{backgroundColor: colors.card}}
       >
           <Dialog.Title titleStyle={{color: colors.text}} title="Confirm deletion" />
@@ -130,7 +133,7 @@ export const AddCollection = ({ navigation, route }) => {
                 style={{width: 100}}
                 title="Cancel"
                 color="error"
-                onPress={() => setDeletionDialogVisible(!deletionDialogVisible)}
+                onPress={() => setVisibleDialog("")}
               />
               <SolidButton
                 style={{width: 100}}
@@ -147,32 +150,3 @@ export const AddCollection = ({ navigation, route }) => {
       </>
     )
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        flexDirection: 'column',
-    },
-    row: {
-      flexWrap: 'wrap',
-      flexDirection: "row",
-    },
-    error: {
-      color: 'red'
-    },
-    buttonSolid: {
-      width: 50,
-    },
-    inputBox: {
-      margin: 20,
-      width: 400,
-    },
-    input: {
-      padding: 10,
-    },
-    buttonLabel: {
-      marginBottom: 5, 
-      marginTop: 15
-    }
-});

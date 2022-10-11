@@ -20,6 +20,7 @@ import { CollectionList } from './CollectionList';
 import { InventoryAppLight, InventoryAppDark } from './Themes';
 import { colors } from 'react-native-elements';
 import { ThemeContext, UserContext } from './AppContext'; 
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const AuthStack = createStackNavigator();
 const HomeStack = createStackNavigator();
@@ -58,8 +59,9 @@ const ItemsNavigator = () => {
         options={({ route }) => ({ 
           title: route.params.collection ?? "Collection",
           headerStyle: {
-            backgroundColor: route.params.color
+            backgroundColor: route.params.color,
           },
+          headerTintColor: route.params.color ? "white" : colors.text
         })} 
       />
       <ItemsStack.Screen name="Add Item" component={AddItem} 
@@ -82,6 +84,8 @@ export default function App() {
   const themeData = { theme, setTheme };
   const userData = { user, setUser };
 
+  GoogleSignin.configure()
+  
   // Get auth status from firebase
   auth.onAuthStateChanged((authUser) => {
       if(!user?.uid && authUser?.uid) {
@@ -93,6 +97,7 @@ export default function App() {
               if(data) {
                 setUser({...data, ...authUser})
                 if(data.theme) setTheme(data.theme)
+                console.log(user, "user authenticated")
               }
               setInitialized(true)
           })
@@ -122,6 +127,7 @@ export default function App() {
             <Tab.Navigator
               screenOptions={({ route }) => ({
                 ...NavigatorStyles,
+                headerShown: false,
                 /*headerStyle: { backgroundColor: '#168CAD' },*/
                 tabBarIcon: ({ color, size }) => {
                   let iconName;
