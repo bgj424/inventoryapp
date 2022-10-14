@@ -1,25 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { database, auth } from './Database'
-import { removeCollection } from './database_functions/CollectionData';
-import { StyleSheet, Text, View, FlatList, Dimensions, KeyboardAvoidingView } from 'react-native';
+import { removeItem } from './database_functions/ItemData';
+import { Text, View, FlatList, KeyboardAvoidingView } from 'react-native';
 import { ref, onValue } from "firebase/database";
 import { ListItem, Dialog, Badge, ButtonGroup, Divider } from 'react-native-elements';
-import { ColorPresets, styles } from './Styles';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { SolidButton } from './components/SolidButton';
 import { useTheme } from '@react-navigation/native';
-import { color } from 'react-native-elements/dist/helpers';
 import { TransparentButton } from './components/TransparentButton';
-import { AddItem } from './AddItem';
-import { InfoDialog } from './components/InfoDialog'
 import { convertUnix } from './functions/convertUnix';
-import Barcode from "react-native-barcode-builder";
-import { StyledInput } from './components/StyledInput';
 import { Ionicons } from '@expo/vector-icons';
+import { sortItemList } from './functions/sortList';
 
 export const ItemList = ({ navigation, route }) => {
     const [items, setItems] = useState('');
-    const [selectedItem, setSelectedItem] = useState({});
+    const [collection, setCollection] = useState(route.params?.collection)
     const [sortedBy, setSortedBy] = useState(0);
     const [reverseSortedBy, setReverseSortedBy] = useState(false);
     const [expandAccordions, setExpandAccordions] = useState([])
@@ -27,8 +22,8 @@ export const ItemList = ({ navigation, route }) => {
     const [visibleDialog, setVisibleDialog] = useState('');
     const colors = useTheme().colors;
 
-    const sortedItems = (items) => React.useMemo(() => 
-      sortListData(items), [items, sortedBy, reverseSortedBy]
+    const sortedItems = (items) => useMemo(() => 
+      sortItemList(items, sortedBy, reverseSortedBy), [items, sortedBy, reverseSortedBy]
     );
 
     const changeVisibleDialog = (value, data = null) => { 
@@ -36,40 +31,29 @@ export const ItemList = ({ navigation, route }) => {
         if(data) setDialogMessage(data)
     }
 
+    const dbref = collection.shared ? 
+      ref(database, 'shared/itemdata/' + collection.accessCode) :
+      ref(database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection.name)
+
     // Updating list from db
     useEffect(() => {
-      onValue(ref(
-        database, 'users/' + auth.currentUser.uid + '/itemdata/' + route.params.collection
-      ), (snapshot) => {
+      onValue(dbref, (snapshot) => {
         const data = snapshot.val();
         if(data) {
           let flatlistArray =
-            Object.entries(data).map( // Make array with keys for flatlist
+            // Make array with keys for flatlist
+            Object.entries(data).map(
               item => ({...item[1], key: item[0]})
             )
           setItems(flatlistArray)
-          navigation.setOptions({ title: `${route.params.collection} (${flatlistArray.length ?? 0} items)` })
+          navigation.setOptions({ title: `${collection.name} (${flatlistArray?.length ?? 0} items)` })
         } else {
           setItems('')
         }
       })
     }, []);
 
-    const sortListData = (data) => {
-        if(!data) return
-        let sortedData;
-        if(sortedBy === 1) { // by date
-          sortedData = data.sort((a, b) => a.added > b.added)
-        } else { // by name
-          sortedData = data.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())) // Sort by name
-          if(sortedBy !== 0) // by name + itemcount
-            sortedData = data.sort((a, b) => a.amount < b.amount)
-        }
-        if(reverseSortedBy)
-          sortedData = sortedData.reverse()
-        return sortedData
-    }
-
+    // Accordion content data
     const itemData = (item) => [
       {
         title: "Name",
@@ -93,6 +77,7 @@ export const ItemList = ({ navigation, route }) => {
       },
     ]
 
+    // Accordion content element
     const itemDataElement = ({ item }) => {
       return(
         <ListItem bottomDivider containerStyle={{backgroundColor:colors.background, height: 30, paddingVertical: 0}}>
@@ -122,6 +107,7 @@ export const ItemList = ({ navigation, route }) => {
       )
     }
 
+    // Accordion
     const listElement = ({ item }) => {
       let expanded = expandAccordions.includes(item.key)
       return (
@@ -152,7 +138,7 @@ export const ItemList = ({ navigation, route }) => {
                 value={item.amount}
                 textStyle={{fontWeight:"bold"}}
                 badgeStyle={{
-                  backgroundColor: route.params.color ?? colors.primary, marginTop:3
+                  backgroundColor: collection.color ?? colors.primary, marginTop:3
                 }}
               />
             </View>
@@ -172,43 +158,46 @@ export const ItemList = ({ navigation, route }) => {
           }
         >
           {/* Accordion content */}
-          <View style={{}}>
-            <FlatList
-              data={itemData(item)}
-              renderItem={itemDataElement}
-            />
-            <View style={{alignItems:"center", backgroundColor:colors.background, height:50}}>
-              <View style={{flexDirection:"row"}}>
-                <SolidButton
-                  style={{width:"50%", height:"100%", borderRadius:0}}
-                  icon="trash"
-                  color="error"
-                  onPress={() => {
-                    removeItem(route.params.collection, item.key)
-                  }}
-                />
-                <SolidButton
-                  style={{width:"50%", height:"100%", borderRadius:0}}
-                  icon="edit"
-                  color="warning"
-                  onPress={() => {
-                    navigation.navigate('Add Item', {
-                      collection: route.params.collection,
-                      color: route.params.color,
-                      item: {
-                        id: item.key,
-                        name: item.name,
-                        description: item.description,
-                        amount: item.amount,
-                      },
-                      edit: true
-                    })
-                  }} 
-                />
+          {expanded &&
+            <View style={{}}>
+              <FlatList
+                data={itemData(item)}
+                renderItem={itemDataElement}
+              />
+              <View style={{alignItems:"center", backgroundColor:colors.background, height:50}}>
+                <View style={{flexDirection:"row"}}>
+                  <SolidButton
+                    style={{width:"50%", height:"100%", borderRadius:0}}
+                    icon="trash"
+                    color="error"
+                    onPress={() => {
+                      removeItem(collection.name, item.key)
+                    }}
+                  />
+                  <SolidButton
+                    style={{width:"50%", height:"100%", borderRadius:0}}
+                    icon="edit"
+                    color="warning"
+                    onPress={() => {
+                      navigation.navigate('Add Item', {
+                        collection: collection,
+                        color: collection.color,
+                        item: {
+                          id: item.key,
+                          name: item.name,
+                          description: item.description,
+                          amount: item.amount,
+                        },
+                        edit: true,
+                        shared: collection.shared,
+                      })
+                    }} 
+                  />
+                </View>
               </View>
+              <Divider color={colors.reverse.background} style={{height:1}} />
             </View>
-            <Divider color={colors.reverse.background} style={{height:1}} />
-          </View>
+          }
         </ListItem.Accordion>
       )
     }
@@ -250,14 +239,12 @@ export const ItemList = ({ navigation, route }) => {
               <Text style={{color:colors.primary3, fontSize:20, fontWeight:"bold", marginTop:10}}>Items</Text>
               <Divider color={colors.reverse.card} style={{marginVertical:10}} />
               <View>
-                {items !== [] ? <>
-                  <FlatList
-                    data={sortedItems(items)}
-                    renderItem={listElement}
-                    width={"100%"}
-                    height={"75%"}
-                  />
-                </> : null}
+                <FlatList
+                  data={sortedItems(items)}
+                  renderItem={listElement}
+                  width={"100%"}
+                  height={"75%"}
+                />
               </View>
             </View>
           </View>
@@ -271,8 +258,7 @@ export const ItemList = ({ navigation, route }) => {
                 style={{width:"50%", marginRight: 5}}
                 onPress={() => 
                   navigation.navigate('Add Item', {
-                    collection: route.params.collection,
-                    color: route.params.color
+                    collection: collection
                   })
                 } 
                 title="Add Item"
@@ -283,8 +269,7 @@ export const ItemList = ({ navigation, route }) => {
                 style={{width:"50%", marginLeft: 5}}
                 onPress={() => {
                   navigation.navigate('New Collection', {
-                    collection: route.params.collection,
-                    color: route.params.color,
+                    collection: collection,
                     edit: true
                   })
                 }}  

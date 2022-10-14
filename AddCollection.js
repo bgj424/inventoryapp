@@ -1,5 +1,5 @@
 import { database, auth } from './Database'
-import { addCollection } from './database_functions/CollectionData';
+import { addCollection, editCollection, removeCollection } from './database_functions/CollectionData';
 import { changeUserData } from './database_functions/UserData'
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView } from 'react-native';
@@ -9,45 +9,47 @@ import { ColorPicker } from './components/ColorPicker';
 import { SolidButton } from './components/SolidButton';
 import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
-import { Divider, Dialog } from 'react-native-elements';
+import { Divider, Dialog, CheckBox } from 'react-native-elements';
 import { styles } from './Styles';
 
 export const AddCollection = ({ navigation, route }) => {
     const colors = useTheme().colors;
-    const [name, setName] = useState('');
+    const [values, setValues] = useState(route.params?.collection ?? {shared: false})
     const [error, setError] = useState('');
-    const [currentColor, setCurrentColor] = useState(null);
     const [visibleDialog, setVisibleDialog] = useState('');
     const [checkInputValues, setCheckInputValues] = useState(false);
     let invalidInputsList = [];
 
-    // Get collection information if it exists
-    useFocusEffect(
-      React.useCallback(() => {
-        if(route.params?.collection) {
-          setName(route.params?.collection)
-          setCurrentColor(route.params?.color)
-        }
-        return () => {
-        };
-      })
-    )
-
     const add = () => {
         setError('')
-        addCollection(name, currentColor)
+        addCollection(values.name, values)
         .then(result => {
             changeUserData({collectionsCreated: increment(1)})
+            .catch(e => console.log("Increment failed: " + (e.code)))
+            
             navigation.navigate('Collections', {
-                name: name,
-                color: currentColor
+              collection: {...values}
             })
         })
-        .catch(e => setError(e))
+        .catch(e => setError(`Error (${e})`))
+    }
+
+    const edit = () => {
+      setError('')
+      editCollection(route.params.collection.name, values)
+      .then(result => {
+        navigation.navigate('Collections', {
+          collection: {...values}
+        })
+      })
+      .catch(e => setError(`Error (${e})`))
     }
 
     useEffect(() => {
       if(checkInputValues) {
+        if(values.edit)
+          edit()
+        else
           add()
       }
     }, [checkInputValues])
@@ -68,24 +70,24 @@ export const AddCollection = ({ navigation, route }) => {
             {/* Main container */}
             <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
               <View style={{width:"100%"}}>
-              <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Collection details</Text>
+              <Text onPress={()=> console.log(refs("collections").user.child) } style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Collection details</Text>
               <Divider color={colors.reverse.card} style={{marginVertical:10}} />
                 <View>
                   <StyledInput
-                      label="Collection name"
-                      style={{width:50}}
-                      matchType="text"
-                      onChangeText={name => {setName(name); setError('')}} 
-                      value={name}
-                      placeholder="Name for collection"
-                      icon="tag"
-                      iconColor={currentColor === null ? colors.reverse.card : currentColor}
-                      checkValue={checkInputValues}
-                      handleInvalidValue={handleInvalidValue}
+                    label="Collection name"
+                    style={{width:50}}
+                    matchType="text"
+                    onChangeText={name => {setValues({...values, name: name}); setError('')}} 
+                    value={values.name}
+                    placeholder="Name for collection"
+                    icon="tag"
+                    iconColor={values.color === null ? colors.reverse.card : values.color}
+                    checkValue={checkInputValues}
+                    handleInvalidValue={handleInvalidValue}
                   />
                   <View style={{alignItems:"center"}}>
                     <ColorPicker
-                      onColorChange={(color) => setCurrentColor(color)}
+                      onColorChange={(color) => setValues({...values, color: color})}
                     />
                   </View>
                 </View>
@@ -108,6 +110,12 @@ export const AddCollection = ({ navigation, route }) => {
                   icon="trash"
                 />
               }
+              <CheckBox
+                center
+                title="Shared Collection"
+                checked={values.shared}
+                onPress={() => setValues({...values, shared: !values.shared})}
+              />
               <SolidButton
                 style={{width:"50%", marginLeft: 5}}
                 onPress={() => setCheckInputValues(checkInputValues + 1)} 
@@ -125,23 +133,24 @@ export const AddCollection = ({ navigation, route }) => {
       >
           <Dialog.Title titleStyle={{color: colors.text}} title="Confirm deletion" />
           <Text style={{color: colors.text}}>Are you sure you want 
-            to delete collection {route.params?.collection}?
+            to delete collection {route.params?.collection.name}?
           </Text>
-          <View style={{width:350}}>
+          <View style={{width:"100%"}}>
             <Dialog.Actions>
               <SolidButton
-                style={{width: 100}}
+                style={{width: "30%", marginLeft:10}}
                 title="Cancel"
                 color="error"
                 onPress={() => setVisibleDialog("")}
               />
               <SolidButton
-                style={{width: 100}}
+                style={{width: "30%"}}
                 title="Confirm"
                 color="success"
                 onPress={() => {
-                  removeCollection(route.params?.collection)
-                  navigation.navigate('Collections')
+                  removeCollection(route.params.collection.name)
+                  .then(res => navigation.navigate('Collections'))
+                  .catch(e => setError(`Error (${e.code})`))
                 }}
               />
             </Dialog.Actions>

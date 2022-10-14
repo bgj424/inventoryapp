@@ -5,6 +5,7 @@ import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 import { checkInputValue } from '../functions/checkInputValue';
+import { Ionicons } from '@expo/vector-icons';
 
 /**
  * @param props.handleInvalidValue function to call when value is invalid
@@ -12,6 +13,7 @@ import { checkInputValue } from '../functions/checkInputValue';
  * @param props.iconColor icon color
  * @param {boolean} props.checkValue call value check on input element
  * @param {string} props.matchType if the value needs to match specific type (text||number||email||password||passwordMatch||{match: Custom condition, errMsg: Custom error})
+ * @param iconSet ionicons/null
  */
 
 export const StyledInput = (props) => {
@@ -57,7 +59,13 @@ export const StyledInput = (props) => {
             onBlur={() => { checkValue(true) }}
             labelStyle={{color: colors.text}}
             leftIcon={
-                <Icon 
+                props.iconSet === "ionicons" ?
+                <Ionicons
+                    name={props.icon} 
+                    size={22} 
+                    color={props.iconColor ?? '#757575'} 
+                /> :
+                <Icon
                     name={props.icon} 
                     size={22} 
                     color={props.iconColor ?? '#757575'} 

@@ -34,7 +34,7 @@ export const Frontpage = ({ navigation }) => {
             <View style={{flexDirection:"row"}}>
               <Ionicons name="logo-react" size={27} color={colors.primary2} style={{marginRight:10}} />
             <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>
-              Welcome {auth.currentUser?.displayName}
+              Welcome {user?.displayName}
             </Text>
             </View>
             <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />

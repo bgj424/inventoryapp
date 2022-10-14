@@ -57,11 +57,11 @@ const ItemsNavigator = () => {
       <ItemsStack.Screen name="New Collection" component={AddCollection} />
       <ItemsStack.Screen name="Item List" component={ItemList} 
         options={({ route }) => ({ 
-          title: route.params.collection ?? "Collection",
+          title: route.params.collection.name ?? "Collection",
           headerStyle: {
-            backgroundColor: route.params.color,
+            backgroundColor: route.params.collection.color,
           },
-          headerTintColor: route.params.color ? "white" : colors.text
+          headerTintColor: route.params.collection.color ? "white" : colors.text
         })} 
       />
       <ItemsStack.Screen name="Add Item" component={AddItem} 
@@ -83,8 +83,6 @@ export default function App() {
   const [user, setUser] = useState(null);
   const themeData = { theme, setTheme };
   const userData = { user, setUser };
-
-  GoogleSignin.configure()
   
   // Get auth status from firebase
   auth.onAuthStateChanged((authUser) => {
@@ -97,7 +95,6 @@ export default function App() {
               if(data) {
                 setUser({...data, ...authUser})
                 if(data.theme) setTheme(data.theme)
-                console.log(user, "user authenticated")
               }
               setInitialized(true)
           })

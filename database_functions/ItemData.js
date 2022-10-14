@@ -2,16 +2,14 @@ import { database, auth } from '../Database'
 import { ref, get, set, push, child, update, remove, increment, serverTimestamp } from "firebase/database";
 
 // Store user-specific information for an item (name for item, description...)
-export const saveItemInfo = (id, name, description = null, barcode = null) => {
+export const saveItemInfo = (item, key) => {
+    if(item.barcode) key = item.barcode
     return new Promise((resolve, reject) => {
-        const reference = child(ref(
-            database, 'users/' + auth.currentUser.uid + '/iteminfo'
-        ), id)
+        const db_ref = ref(database, 'users/' + auth.currentUser.uid + '/iteminfo/' + key)
         
-        update(reference, {
-            name: name,
-            description: description,
-            barcode: barcode
+        update(db_ref, {
+            ...item,
+            amount: null
         })
         .then(res => resolve(res))
         .catch(e => reject(e.code))
@@ -19,35 +17,40 @@ export const saveItemInfo = (id, name, description = null, barcode = null) => {
 }
   
 // Save the item to db under user id
-export const saveItem = (collection, name, amount, id = null, description = null) => {
-    return new Promise((resolve, reject) => {
-        if(id) { 
-            // Edit existing item or create one with specified key
-            const reference = child(ref(
-                database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection
-            ), id)
+export const saveItem = (collection, item) => {
+    let db_path = ""
+    let db_ref = ""
 
-            update(reference, {
-                name: name,
-                description: description,
-                amount: amount
+    if(collection.shared) {
+        db_path = ref(database, 'shared')
+        db_ref = child(db_path, '/itemdata/' + collection.accessCode)
+    } else {
+        db_path = ref(database, 'users/' + auth.currentUser.uid)
+        db_ref = child(db_path, '/itemdata/' + collection.name)
+    }
+
+    return new Promise((resolve, reject) => {
+        if(item.barcode) { 
+            // Edit existing item or create one with specified key
+            update(child(db_ref, item.barcode), {
+                name: item.name,
+                description: item.description,
+                amount: item.amount
             })
-            .then(res => resolve(id))
+            .then(res => resolve(item.barcode))
             .catch(e => reject(e.code))
 
         } else { 
             // Push new item with new key
-            let key = 
-                push(ref(database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection), {
-                    name: name,
-                    description: description,
-                    amount: amount,
-                    added: serverTimestamp(),
-                })
-                .catch(e => reject(e.code))
+            let key =
+            push(db_ref, {
+                ...item,
+                added: serverTimestamp(),
+            }).key
 
-            update(ref(
-                database, 'users/' + auth.currentUser.uid + '/collections/' + collection
+            // Update collection info
+            update(child(
+                db_path, '/collections/' + (collection.shared ? collection.accessCode : collection.name)
             ), {
                 itemCount: increment(1)
             })
@@ -98,21 +101,21 @@ const checkItem = (collection, key) => {
 }
 
 // Add a new item to the database
-export const addItem = (collection, name, amount, barcode = null, description = null) => {
+export const addItem = (collection, item) => {
     return new Promise((resolve, reject) => {
         // query to check if item already exists
-        console.log("add", 1)
-        checkItem(collection, barcode)
-        .then(res => {
-            console.log("add", 2)
-            saveItem(collection, name, amount, barcode, description)
-            .then(key => {
-                console.log("add", 5)
-                saveItemInfo(key, name, description, barcode)
-                .then(res => resolve(res))
-                .catch(e => reject(e))
-            })
+        if(item.barcode !== null) {
+            checkItem(collection.name, item.barcode)
+            .catch(e => reject(e))
+        }
+
+        saveItem(collection, item)
+        .then(key => {
+            saveItemInfo(item, key)
+            .then(res => resolve(res))
+            .catch(e => reject(e))
         })
         .catch(e => reject(e))
     })
 }
+

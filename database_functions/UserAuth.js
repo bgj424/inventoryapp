@@ -97,16 +97,24 @@ export const GoogleSignIn = async () => {
     try {
         await GoogleSignin.hasPlayServices();
         const userInfo = await GoogleSignin.signIn();
-        resolve(userInfo)
+        return(userInfo)
     } catch (error) {
         if (error.code === statusCodes.SIGN_IN_CANCELLED) {
-            reject("Google Sign in cancelled")
+            throw ("Google Sign in cancelled")
         } else if (error.code === statusCodes.IN_PROGRESS) {
-            reject("Google Sign in in progress")
+            throw ("Google Sign in in progress")
         } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-            reject("Google Play service not available")
+            throw ("Google Play service not available")
         } else {
-            reject("Error while trying to sign in")
+            throw ("Error while trying to sign in " + error.code)
         }
     }
 };
+
+export const GoogleSignOut = async () => {
+    try {
+        await GoogleSignin.signOut();
+    } catch (error) {
+        console.error(error);
+    }
+}

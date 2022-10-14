@@ -51,6 +51,7 @@ export const EditProfile = ({ navigation, route }) => {
         if(updatedValues !== {}) {
             changeUserProfile(updatedValues)
             .then(res => {
+                setUser({...user, ...updatedValues})
                 navigation.navigate('Settings')
             })
             .catch(e => console.log(e))

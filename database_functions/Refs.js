@@ -6,3 +6,8 @@ export const itemDataRef = ref(database, 'users/' + auth.currentUser.uid + '/ite
 export const userDataRef = ref(database, 'users/' + auth.currentUser.uid + '/userdata/')
 export const itemInfoRef = ref(database, 'users/' + auth.currentUser.uid + '/iteminfo/')
 export const collectionDataRef = ref(database, 'users/' + auth.currentUser.uid + '/collections/')
+
+export const refs = {
+    user: ref(database, 'users/' + auth.currentUser.uid),
+    shared: ref(database, 'shared/collections/')
+}

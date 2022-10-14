@@ -1,6 +1,6 @@
 import { database, auth } from './Database'
 import { addItem, saveItem, saveItemInfo } from './database_functions/ItemData'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Text, View, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { ref, get } from "firebase/database";
@@ -12,26 +12,17 @@ import { Divider } from 'react-native-elements';
 
 // Insert specified amount of specific item to your inventory
 export const AddItem = ({ navigation, route }) => {
-    const [item, setItem] = useState({})
+    const [item, setItem] = useState({...route.params?.item, barcode: route.params?.barcode ?? null})
+    const [collection, setCollection] = useState({...route.params?.collection})
     const [doInputValueCheck, setDoInputValueCheck] = useState(false)
     const [keyboardStatus, setKeyboardStatus] = useState(false);
     const [error, setError] = useState('')
     let invalidInputsList = []
     const colors = useTheme().colors;
 
-    // Get item information if it exists
+    /*
     useFocusEffect(
-      React.useCallback(() => {
-        if(route.params.item) {
-          setItem({
-            name: route.params.item.name,
-            description: route.params.item.description,
-            amount: route.params.item.amount,
-            id: route.params.item.id,
-            barcode: route.params.barcode ?? null
-          })
-        }
-
+      useCallback(() => {
         if(item.id) {
           // Autofill item information
           get(ref(
@@ -45,15 +36,23 @@ export const AddItem = ({ navigation, route }) => {
                 name: itemSnapshot.name, 
                 description: itemSnapshot.description
               })
+              .catch(e => {
+                // todo: add error dialog
+                navigation.navigate('Item List', {
+                  collection: route.params.collection,
+                  item: item
+                }
+              )})
             }
             return item
           })
+          .catch(e => setError(e.code))
         }
         return () => {
         };
       }, [route])
     );
-
+*/
     useEffect(() => {
       const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
           setKeyboardStatus(true);
@@ -88,39 +87,21 @@ export const AddItem = ({ navigation, route }) => {
       
       // Add new item
       if(!route.params.edit) {
-        addItem(
-          route.params.collection, 
-          item.name, 
-          item.amount,
-          item.barcode,
-          item.description
-        )
-        .catch(e => {
-          errMsg = "Error while adding item (" + e.code + ")"
-        })
+        addItem(collection, item)
+        .catch(e => errMsg = "Error while adding item (" + e.code + ")")
 
       // Edit already existing item
       } else {
-        saveItem(
-          route.params.collection, 
-          item.name,
-          item.amount,
-          item.id,
-          item.description
-        )
-        saveItemInfo(
-          item.id, 
-          item.name, 
-          item.description,
-          item.barcode
-        )
+        saveItem(collection, item)
+        .catch(e => errMsg = "Error while editing item (" + e.code + ")")
+        saveItemInfo(item)
+        .catch(e => errMsg = "Error while editing item (" + e.code + ")")
       }
 
       if(!errMsg) {
         navigation.navigate('Item List', {
-          collection: route.params.collection,
-          color: route.params.color,
-          item: {...item}
+          collection: collection,
+          item: item
         })
       } else setError(errMsg)
     }
@@ -133,7 +114,7 @@ export const AddItem = ({ navigation, route }) => {
               {/* Main container */}
               <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20, marginTop: keyboardStatus ? -45 : null}]}>
                 <View style={{width:"100%"}}>
-                  <Text style={{color:colors.primary3, fontSize:22, fontWeight:"bold", display: keyboardStatus ? "none" : null}}>Item details</Text>
+                  <Text onPress={() => console.log(auth.currentUser.uid)} style={{color:colors.primary3, fontSize:22, fontWeight:"bold", display: keyboardStatus ? "none" : null}}>Item details</Text>
                   <Divider color={colors.reverse.card} style={{marginVertical:10}} />
                   <View>
                     {/* Form */}
@@ -190,9 +171,8 @@ export const AddItem = ({ navigation, route }) => {
                     style={{width:"50%", marginRight: 5}}
                     onPress={() => 
                       navigation.navigate('Barcode Scanner', {
-                        collection: route.params.collection,
-                        color: route.params.color,
-                        item: {...item}
+                        collection: collection,
+                        item: item
                       }
                     )} 
                     title="Scan barcode"

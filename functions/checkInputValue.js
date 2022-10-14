@@ -34,6 +34,11 @@ function checkTypeMatch(type, value) {
             return {
                 match: true, // todo: validate all text
             }
+        case "accesscode":
+            return {
+                match: value?.length > 4,
+                errMsg: "Invalid access code"
+            }
         default: // custom check
             return type
     }

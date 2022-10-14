@@ -64,7 +64,7 @@ export const SettingsScreen = ({ navigation, route }) => {
               />
               <View style={{flexDirection:"column",justifyContent:"center"}}>
                 <Text style={{color:colors.text, fontSize:20, fontWeight:"bold", marginTop:5, marginLeft: 20}}>
-                  {(route.params && route.params.changedSettings.username) ?? auth.currentUser.displayName}
+                  {user?.displayName}
                 </Text>
               </View>
             </View>
