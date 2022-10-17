@@ -12,15 +12,17 @@ Features
   - Customized themes
 
   Items database
-  - Add, create, edit and remove item lists (collections)
+  - Add, create, edit and remove item lists (inventories)
   - Sort item lists and items inside them
   - Use phone camera barcode scanner to save/identify items via barcode
+  - Create shared inventories which can be seen and edited by people that have access
 
   Users
   - Register and login
   - Change password inside app or with email
   - Upload profile picture
   - Save and edit user information
+  - Access shared inventories with code
   
   Components
   - Custom components:
