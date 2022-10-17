@@ -49,9 +49,7 @@ export const Frontpage = ({ navigation }) => {
               </View>
               <View>
                 <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
-                  Welcome to Mobile Inventory!
-                  You have a total of 0 items
-                  in 0 inventories
+                  Welcome to Inventory App!
                 </Text>
               </View>
             </View>

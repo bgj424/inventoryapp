@@ -11,5 +11,6 @@ npm-debug.*
 *.orig.*
 web-build/
 google_services.json
+readme.md
 # macOS
 .DS_Store
