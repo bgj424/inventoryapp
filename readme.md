@@ -1,6 +1,6 @@
 Technologies
 - Backend with Firebase Realtime database & Firebase Storage
-- Frontend with React Native with:
+- Frontend with React Native and expo using:
   - React Navigation
   - React Native Elements
   
@@ -27,3 +27,10 @@ Features
     - Error-handling and value checking input element
     - Custom buttons with styling
     - Custom dialogs with messages and authentication
+    - Colorpicker
+    
+![Screenshot](images/login.PNG)
+![Screenshot](images/frontpage.PNG)
+![Screenshot](images/itemlist.PNG)
+![Screenshot](images/items.PNG)
+![Screenshot](images/registration.PNG)
