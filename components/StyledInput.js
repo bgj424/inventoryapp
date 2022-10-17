@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useState } from 'react';
 import { checkInputValue } from '../functions/checkInputValue';
 import { Ionicons } from '@expo/vector-icons';
+import { color } from 'react-native-elements/dist/helpers';
 
 /**
  * @param props.handleInvalidValue function to call when value is invalid
@@ -48,6 +49,8 @@ export const StyledInput = (props) => {
     return (
         <Input
             {...props}
+            selectionColor={colors.reverse.primary3}
+            maxLength={props.maxLength ?? 100}
             keyboardType={props.keyboardType}
             errorMessage={error.display ? error.message : ''}
             ref={inputRef}

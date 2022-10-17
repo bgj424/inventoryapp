@@ -1,9 +1,9 @@
 import React, { useEffect, useState, createContext, useMemo, useContext } from 'react';
-import { useColorScheme, Appearance } from 'react-native';
+import { useColorScheme, Appearance, Image,Text } from 'react-native';
 import { LoginScreen } from './Login';
 import { RegistrationScreen } from './Registration';
 import { Frontpage } from './Home';
-import { AddCollection } from './AddCollection';
+import { AddInventory } from './AddInventory';
 import { AddItem } from './AddItem';
 import { SettingsScreen, Settings } from './Settings';
 import { EditProfile } from './EditProfile';
@@ -16,16 +16,18 @@ import { database, auth } from './Database';
 import { ref, get, onValue} from "firebase/database";
 import { BarcodeScanner } from './BarcodeScanner';
 import { ItemList } from './ItemList';
-import { CollectionList } from './CollectionList';
+import { InventoryList } from './InventoryList';
 import { InventoryAppLight, InventoryAppDark } from './Themes';
 import { colors } from 'react-native-elements';
 import { ThemeContext, UserContext } from './AppContext'; 
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { Logo } from './components/Logo';
 
 const AuthStack = createStackNavigator();
 const HomeStack = createStackNavigator();
 const ItemsStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
 const NavigatorStyles = {
     headerMode: 'screen',
     headerTintColor: 'white',
@@ -33,8 +35,15 @@ const NavigatorStyles = {
 
 const AuthNavigator = () => {
   return (
-    <AuthStack.Navigator >
-        <AuthStack.Screen name="Login" component={LoginScreen} />
+    <AuthStack.Navigator
+      screenOptions={() => ({
+        headerTitle: () => <Logo />,
+        headerTitleAlign: 'center',
+      })}
+    >
+        <AuthStack.Screen name="Login" component={LoginScreen} 
+          options={() => ({title: "Welcome!"})}
+        />
         <AuthStack.Screen name="Registration" component={RegistrationScreen} />
     </AuthStack.Navigator>
   )
@@ -42,8 +51,13 @@ const AuthNavigator = () => {
 
 const HomeNavigator = () => {
   return (
-    <HomeStack.Navigator>
-        <HomeStack.Screen name="Frontpage" component={Frontpage} />
+    <HomeStack.Navigator
+      screenOptions={() => ({
+        headerTitle: () => <Logo />,
+        headerTitleAlign: 'center',
+      })}
+    >
+        <HomeStack.Screen name="Frontpage" component={Frontpage}/>
         <HomeStack.Screen name="Settings" component={SettingsScreen} />
         <HomeStack.Screen name="Edit Profile" component={EditProfile} />
     </HomeStack.Navigator>
@@ -53,15 +67,15 @@ const HomeNavigator = () => {
 const ItemsNavigator = () => {
   return (
     <ItemsStack.Navigator>
-      <ItemsStack.Screen name="Collections" component={CollectionList} />
-      <ItemsStack.Screen name="New Collection" component={AddCollection} />
+      <ItemsStack.Screen name="Inventories" component={InventoryList} />
+      <ItemsStack.Screen name="New Inventory" component={AddInventory} />
       <ItemsStack.Screen name="Item List" component={ItemList} 
         options={({ route }) => ({ 
-          title: route.params.collection.name ?? "Collection",
+          title: route.params.inventory.name ?? "Inventory",
           headerStyle: {
-            backgroundColor: route.params.collection.color,
+            backgroundColor: route.params.inventory.color,
           },
-          headerTintColor: route.params.collection.color ? "white" : colors.text
+          headerTintColor: route.params.inventory.color ? "white" : colors.text
         })} 
       />
       <ItemsStack.Screen name="Add Item" component={AddItem} 
@@ -86,21 +100,26 @@ export default function App() {
   
   // Get auth status from firebase
   auth.onAuthStateChanged((authUser) => {
-      if(!user?.uid && authUser?.uid) {
-          // User is signed in, get data
-          onValue(ref(
-              database, 'users/' + authUser.uid + '/userdata'
-          ), (snapshot) => {
-              const data = snapshot.val();
-              if(data) {
-                setUser({...data, ...authUser})
-                if(data.theme) setTheme(data.theme)
-              }
-              setInitialized(true)
-          })
-      } else if(!authUser?.uid) {
-          setUser(null)
+      if(!user && authUser) {
+          // User is signed in, set user info
+          if(!user) setUser(authUser)
+
+          if(!initialized) {
+            // Get user data with listener
+            onValue(ref(
+                database, 'users/' + authUser.uid + '/userdata'
+            ), (snapshot) => {
+                const data = snapshot.val();
+                if(data) {
+                  setUser({...authUser, ...data})
+                  if(data.theme) setTheme(data.theme)
+                }
+                setInitialized(true)
+            })
+          }
+      } else if(!authUser) {
           setTheme("light")
+          setUser(null)
           setInitialized(true)
       }
   });
@@ -112,7 +131,7 @@ export default function App() {
   return(
     <ThemeContext.Provider value={themeData}>
       <NavigationContainer theme={theme === 'dark' ? InventoryAppDark : InventoryAppLight}>
-        {!user?.uid && initialized ? (
+        {!auth?.currentUser && initialized ? (
           <AuthNavigator
             theme={InventoryAppLight}
             screenOptions={({ route }) => ({

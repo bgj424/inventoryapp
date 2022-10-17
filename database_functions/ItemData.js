@@ -17,16 +17,19 @@ export const saveItemInfo = (item, key) => {
 }
   
 // Save the item to db under user id
-export const saveItem = (collection, item) => {
+export const saveItem = (inventory, item) => {
     let db_path = ""
     let db_ref = ""
+    let inventoryKey = ""
 
-    if(collection.shared) {
+    if(inventory.shared) {
         db_path = ref(database, 'shared')
-        db_ref = child(db_path, '/itemdata/' + collection.accessCode)
+        db_ref = child(db_path, '/itemdata/' + inventory.accessCode)
+        inventoryKey = inventory.accessCode
     } else {
         db_path = ref(database, 'users/' + auth.currentUser.uid)
-        db_ref = child(db_path, '/itemdata/' + collection.name)
+        db_ref = child(db_path, '/itemdata/' + inventory.name)
+        inventoryKey = inventory.name
     }
 
     return new Promise((resolve, reject) => {
@@ -48,9 +51,9 @@ export const saveItem = (collection, item) => {
                 added: serverTimestamp(),
             }).key
 
-            // Update collection info
+            // Update inventory info
             update(child(
-                db_path, '/collections/' + (collection.shared ? collection.accessCode : collection.name)
+                db_path, '/inventories/' + inventoryKey
             ), {
                 itemCount: increment(1)
             })
@@ -60,17 +63,24 @@ export const saveItem = (collection, item) => {
     })
 }
 
-export const removeItem = (collection, id) => {
+export const removeItem = (inventory, key) => {
+    let db_path = ""
+    let inventoryKey = ""
+
+    if(inventory.shared) {
+        db_path = ref(database, 'shared')
+        inventoryKey = inventory.accessCode
+    } else {
+        db_path = ref(database, 'users/' + auth.currentUser.uid)
+        inventoryKey = inventory.name
+    }
+
     return new Promise((resolve, reject) => {
-        // Get key which identifies the collection
-        remove(ref(
-            database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection + "/" + id
-        ))
+        // Get key which identifies the inventory
+        remove(child(db_path, '/itemdata/' + inventoryKey + "/" + key))
         .catch(e => reject(e.code))
 
-        update(ref(
-            database, 'users/' + auth.currentUser.uid + '/collections/' + collection
-        ), {
+        update(child(db_path, '/inventories/' + inventoryKey), {
             itemCount: increment(-1)
         })
         .catch(e => reject(e.code))
@@ -79,16 +89,16 @@ export const removeItem = (collection, id) => {
     })
 }
 
-const checkItem = (collection, key) => {
+const checkItem = (inventory, key) => {
     return new Promise((resolve, reject) => {
         if(key) {
             // query to check if item already exists
             get(ref(
-                database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection + '/' + key
+                database, 'users/' + auth.currentUser.uid + '/itemdata/' + inventory + '/' + key
             ))
             .then(snapshot => {
                 if(snapshot.exists()) {
-                    reject("This item already exists in the collection!")
+                    reject("This item already exists in the inventory!")
                 } else {
                     resolve()
                 }
@@ -101,15 +111,15 @@ const checkItem = (collection, key) => {
 }
 
 // Add a new item to the database
-export const addItem = (collection, item) => {
+export const addItem = (inventory, item) => {
     return new Promise((resolve, reject) => {
         // query to check if item already exists
         if(item.barcode !== null) {
-            checkItem(collection.name, item.barcode)
+            checkItem(inventory.name, item.barcode)
             .catch(e => reject(e))
         }
 
-        saveItem(collection, item)
+        saveItem(inventory, item)
         .then(key => {
             saveItemInfo(item, key)
             .then(res => resolve(res))

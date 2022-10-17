@@ -72,12 +72,12 @@ export const ReAuthDialog = (props) => {
             <View style={{alignItems: "center", marginTop: 10}}>
                 <View style={{flexDirection: "row"}}>
                     <SolidButton
-                        style={{width: 150}}
+                        style={{width: "50%", marginRight:5}}
                         onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 
                         title="Log in" 
                     />
                     <SolidButton
-                        style={{width: 150}}
+                        style={{width: "50%", marginLeft:5}}
                         title="Cancel"
                         color="error"
                         onPress={() => {setError(''); props.changeVisibleDialog('')} }

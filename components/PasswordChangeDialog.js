@@ -71,12 +71,12 @@ export const PasswordChangeDialog = (props) => {
           <View style={{alignItems: "center", marginTop: 10}}>
             <View style={{flexDirection: "row"}}>
               <SolidButton
-                  style={{width: 150}}
+                  style={{width: "50%", marginRight:5}}
                   onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 
                   title="Change password" 
               />
               <SolidButton
-                  style={{width: 150}}
+                  style={{width: "50%", marginLeft:5}}
                   title="Cancel"
                   color="error"
                   onPress={() => { props.changeVisibleDialog(''); setError('') }}

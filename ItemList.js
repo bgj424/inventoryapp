@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { database, auth } from './Database'
 import { removeItem } from './database_functions/ItemData';
-import { Text, View, FlatList, KeyboardAvoidingView } from 'react-native';
+import { Text, View, FlatList, KeyboardAvoidingView, ClipboardStatic } from 'react-native';
 import { ref, onValue } from "firebase/database";
 import { ListItem, Dialog, Badge, ButtonGroup, Divider } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,10 +11,15 @@ import { TransparentButton } from './components/TransparentButton';
 import { convertUnix } from './functions/convertUnix';
 import { Ionicons } from '@expo/vector-icons';
 import { sortItemList } from './functions/sortList';
+import { UserContext } from './AppContext';
+import { removeInventoryAccess } from './database_functions/InventoryData';
+import { StyledInput } from './components/StyledInput';
+import { Clipboard } from '@react-native-clipboard/clipboard';
 
 export const ItemList = ({ navigation, route }) => {
+    const {user, setUser} = useContext(UserContext)
     const [items, setItems] = useState('');
-    const [collection, setCollection] = useState(route.params?.collection)
+    const [inventory, setInventory] = useState(route.params?.inventory)
     const [sortedBy, setSortedBy] = useState(0);
     const [reverseSortedBy, setReverseSortedBy] = useState(false);
     const [expandAccordions, setExpandAccordions] = useState([])
@@ -31,9 +36,9 @@ export const ItemList = ({ navigation, route }) => {
         if(data) setDialogMessage(data)
     }
 
-    const dbref = collection.shared ? 
-      ref(database, 'shared/itemdata/' + collection.accessCode) :
-      ref(database, 'users/' + auth.currentUser.uid + '/itemdata/' + collection.name)
+    const dbref = inventory.shared ? 
+      ref(database, 'shared/itemdata/' + inventory.accessCode) :
+      ref(database, 'users/' + auth.currentUser.uid + '/itemdata/' + inventory.name)
 
     // Updating list from db
     useEffect(() => {
@@ -46,7 +51,7 @@ export const ItemList = ({ navigation, route }) => {
               item => ({...item[1], key: item[0]})
             )
           setItems(flatlistArray)
-          navigation.setOptions({ title: `${collection.name} (${flatlistArray?.length ?? 0} items)` })
+          navigation.setOptions({ title: `${inventory.name} (${flatlistArray?.length ?? 0} items)` })
         } else {
           setItems('')
         }
@@ -138,7 +143,7 @@ export const ItemList = ({ navigation, route }) => {
                 value={item.amount}
                 textStyle={{fontWeight:"bold"}}
                 badgeStyle={{
-                  backgroundColor: collection.color ?? colors.primary, marginTop:3
+                  backgroundColor: inventory.color ?? colors.primary, marginTop:3
                 }}
               />
             </View>
@@ -171,7 +176,7 @@ export const ItemList = ({ navigation, route }) => {
                     icon="trash"
                     color="error"
                     onPress={() => {
-                      removeItem(collection.name, item.key)
+                      removeItem(inventory, item.key)
                     }}
                   />
                   <SolidButton
@@ -180,8 +185,8 @@ export const ItemList = ({ navigation, route }) => {
                     color="warning"
                     onPress={() => {
                       navigation.navigate('Add Item', {
-                        collection: collection,
-                        color: collection.color,
+                        inventory: inventory,
+                        color: inventory.color,
                         item: {
                           id: item.key,
                           name: item.name,
@@ -189,7 +194,7 @@ export const ItemList = ({ navigation, route }) => {
                           amount: item.amount,
                         },
                         edit: true,
-                        shared: collection.shared,
+                        shared: inventory.shared,
                       })
                     }} 
                   />
@@ -253,30 +258,55 @@ export const ItemList = ({ navigation, route }) => {
         <View style={[{width:"100%", alignItems:"center", position:"absolute", bottom:0}]}>
           {/* Save button */}
           <View style={{alignItems:"center", marginVertical:20, width: "90%"}}>
+            {inventory?.shared &&
+              <View style={{alignItems:"center", marginBottom: 10}}>
+                <Text style={{fontSize:16}}>Access code</Text>
+                <Text 
+                  style={{width:120,borderWidth:1, borderRadius:5, paddingLeft:10, backgroundColor:colors.background, padding: 10, color: colors.subtle, fontSize:18}}
+                >
+                  {inventory.accessCode} {/* Todo: copy to clipboard */}
+                </Text>
+              </View>
+            }
             <View style={{flexDirection:"row"}}>
               <SolidButton
                 style={{width:"50%", marginRight: 5}}
                 onPress={() => 
                   navigation.navigate('Add Item', {
-                    collection: collection
+                    inventory: inventory
                   })
                 } 
                 title="Add Item"
                 icon="plus"
                 color="primary"
               />
-              <SolidButton
-                style={{width:"50%", marginLeft: 5}}
-                onPress={() => {
-                  navigation.navigate('New Collection', {
-                    collection: collection,
-                    edit: true
-                  })
-                }}  
-                title="Edit Collection"
-                icon="edit"
-                color="warning"
-              />
+              {inventory?.creator === user.displayName &&
+                <SolidButton
+                  style={{width:"50%", marginLeft: 5}}
+                  onPress={() => {
+                    navigation.navigate('New Inventory', {
+                      inventory: inventory,
+                      edit: true
+                    })
+                  }}  
+                  title="Edit Inventory"
+                  icon="edit"
+                  color="warning"
+                />
+              }
+              {(inventory?.creator !== user.displayName && inventory?.shared) &&
+                <SolidButton
+                  style={{width:"50%", marginLeft: 5}}
+                  onPress={() => {
+                    removeInventoryAccess(inventory)
+                    navigation.navigate('Inventories', {
+                    })
+                  }}  
+                  title="Remove access"
+                  icon="minus"
+                  color="error"
+                />
+              }
             </View>
           </View>
         </View>

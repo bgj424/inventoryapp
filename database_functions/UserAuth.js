@@ -93,6 +93,7 @@ export const silentGoogleSignIn = async () => {
     }
 };
 
+/* TODO
 export const GoogleSignIn = async () => {
     try {
         await GoogleSignin.hasPlayServices();
@@ -118,3 +119,4 @@ export const GoogleSignOut = async () => {
         console.error(error);
     }
 }
+*/

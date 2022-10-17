@@ -51,7 +51,7 @@ export const Frontpage = ({ navigation }) => {
                 <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
                   Welcome to Mobile Inventory!
                   You have a total of 0 items
-                  in 0 collections
+                  in 0 inventories
                 </Text>
               </View>
             </View>
@@ -94,11 +94,11 @@ export const Frontpage = ({ navigation }) => {
             <Divider color={colors.reverse.card} style={{marginTop:10,marginBottom:10}} />
             <View style={{flexDirection:"row"}}></View>
             <Text style={[styles.buttonLabel, {color: colors.text, fontSize:16}]}>
-              View your inventory, collections and items at the Items tab
+              View your inventory, inventories and items at the Items tab
             </Text>
             <SolidButton 
               style={{width:"100%", marginTop:10}}
-              onPress={() => navigation.navigate('Items', { screen: 'Collections' })} 
+              onPress={() => navigation.navigate('Items', { screen: 'Inventories' })} 
               title="Go to Items"
             />
           </View>

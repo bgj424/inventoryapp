@@ -3,6 +3,7 @@ import { styles } from "../Styles"
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Ionicons } from '@expo/vector-icons';
 
 // Customizable button with preset colors and styling
 /**
@@ -23,11 +24,19 @@ export const SolidButton = (props) => {
             ]}
         >
             <View style={{flexDirection: "row"}}>
-                {!!props.icon &&
+                {(props.icon && props.iconSet === "ionicons") &&
+                    <Ionicons
+                        style={{marginRight: props.title ? 0 : 0}}
+                        name={props.icon} 
+                        size={22} 
+                        color={props.iconColor ?? "white"}
+                    />
+                }
+                {(props.icon && props.iconSet !== "ionicons") &&
                     <Icon
                         style={{marginRight: props.title ? 10 : 0}}
-                        name={props.icon}
-                        size={props.iconSize ?? 20}
+                        name={props.icon} 
+                        size={22} 
                         color={props.iconColor ?? "white"}
                     />
                 }

@@ -1,7 +1,7 @@
 import { database, auth } from './Database'
-import { addCollection, editCollection, removeCollection } from './database_functions/CollectionData';
+import { addInventory, editInventory, removeInventory } from './database_functions/InventoryData';
 import { changeUserData } from './database_functions/UserData'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView } from 'react-native';
 import { useTheme, useFocusEffect } from '@react-navigation/native';
 import { increment } from "firebase/database";
@@ -11,10 +11,16 @@ import { StyledInput } from './components/StyledInput';
 import { updateInvalidInputsList } from './functions/updateInvalidInputsList';
 import { Divider, Dialog, CheckBox } from 'react-native-elements';
 import { styles } from './Styles';
+import { UserContext } from './AppContext';
 
-export const AddCollection = ({ navigation, route }) => {
+export const AddInventory = ({ navigation, route }) => {
     const colors = useTheme().colors;
-    const [values, setValues] = useState(route.params?.collection ?? {shared: false})
+    const {user, setUser} = useContext(UserContext)
+    const [values, setValues] = useState({
+        ...route.params?.inventory, creator: user.displayName
+      } ?? {
+        shared: false, creator: user.displayName
+      })
     const [error, setError] = useState('');
     const [visibleDialog, setVisibleDialog] = useState('');
     const [checkInputValues, setCheckInputValues] = useState(false);
@@ -22,13 +28,13 @@ export const AddCollection = ({ navigation, route }) => {
 
     const add = () => {
         setError('')
-        addCollection(values.name, values)
+        addInventory(values.name, values)
         .then(result => {
-            changeUserData({collectionsCreated: increment(1)})
+            changeUserData({inventoriesCreated: increment(1)})
             .catch(e => console.log("Increment failed: " + (e.code)))
             
-            navigation.navigate('Collections', {
-              collection: {...values}
+            navigation.navigate('Inventories', {
+              inventory: {...values}
             })
         })
         .catch(e => setError(`Error (${e})`))
@@ -36,10 +42,10 @@ export const AddCollection = ({ navigation, route }) => {
 
     const edit = () => {
       setError('')
-      editCollection(route.params.collection.name, values)
+      editInventory(route.params.inventory.name, values)
       .then(result => {
-        navigation.navigate('Collections', {
-          collection: {...values}
+        navigation.navigate('Inventories', {
+          inventory: {...values}
         })
       })
       .catch(e => setError(`Error (${e})`))
@@ -70,16 +76,16 @@ export const AddCollection = ({ navigation, route }) => {
             {/* Main container */}
             <View style={[{width:"100%",flexDirection:"row",alignItems:"center", backgroundColor:colors.card, borderRadius:5, padding:20}]}>
               <View style={{width:"100%"}}>
-              <Text onPress={()=> console.log(refs("collections").user.child) } style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Collection details</Text>
+              <Text onPress={()=> console.log(refs("inventories").user.child) } style={{color:colors.primary3, fontSize:22, fontWeight:"bold"}}>Inventory details</Text>
               <Divider color={colors.reverse.card} style={{marginVertical:10}} />
                 <View>
                   <StyledInput
-                    label="Collection name"
+                    label="Inventory name"
                     style={{width:50}}
                     matchType="text"
                     onChangeText={name => {setValues({...values, name: name}); setError('')}} 
                     value={values.name}
-                    placeholder="Name for collection"
+                    placeholder="Name for inventory"
                     icon="tag"
                     iconColor={values.color === null ? colors.reverse.card : values.color}
                     checkValue={checkInputValues}
@@ -105,14 +111,14 @@ export const AddCollection = ({ navigation, route }) => {
                 <SolidButton
                   style={{width:"50%", marginRight: 5}}
                   onPress={() => setVisibleDialog("delete")} 
-                  title="Delete collection"
+                  title="Delete inventory"
                   color="error"
                   icon="trash"
                 />
               }
               <CheckBox
                 center
-                title="Shared Collection"
+                title="Shared Inventory"
                 checked={values.shared}
                 onPress={() => setValues({...values, shared: !values.shared})}
               />
@@ -133,7 +139,7 @@ export const AddCollection = ({ navigation, route }) => {
       >
           <Dialog.Title titleStyle={{color: colors.text}} title="Confirm deletion" />
           <Text style={{color: colors.text}}>Are you sure you want 
-            to delete collection {route.params?.collection.name}?
+            to delete inventory {route.params?.inventory.name}?
           </Text>
           <View style={{width:"100%"}}>
             <Dialog.Actions>
@@ -148,8 +154,8 @@ export const AddCollection = ({ navigation, route }) => {
                 title="Confirm"
                 color="success"
                 onPress={() => {
-                  removeCollection(route.params.collection.name)
-                  .then(res => navigation.navigate('Collections'))
+                  removeInventory(route.params.inventory)
+                  .then(res => navigation.navigate('Inventories'))
                   .catch(e => setError(`Error (${e.code})`))
                 }}
               />

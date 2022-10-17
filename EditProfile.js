@@ -1,5 +1,5 @@
 import { database, auth } from './Database'
-import { addCollection } from './database_functions/CollectionData';
+import { addInventory } from './database_functions/InventoryData';
 import { changeUserData, changeUserProfile, changeUserAvatar } from './database_functions/UserData'
 import React, { useState, useEffect, useContext } from 'react';
 import { StyleSheet, Text, View, KeyboardAvoidingView, Keyboard } from 'react-native';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, KeyboardAvoidingView, ImageBackground } from 'react-native';
 import { database, auth } from './Database';
-import { userSignIn, userSignOut, registerAccount, GoogleSignIn, GoogleSignOut } from './database_functions/UserAuth';
+import { userSignIn, userSignOut, registerAccount } from './database_functions/UserAuth';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Divider, Avatar } from 'react-native-elements';
 import { SolidButton } from './components/SolidButton';
@@ -28,10 +28,11 @@ export const LoginScreen = ({ navigation }) => {
     }
 
     const logIn = () => {
+        setError('')
         userSignIn(email, password)
         .then(result => {
         })
-        .catch(e => setError(e))
+        .catch(e => setError(`Login failed (${e.code})`))
     }
 
     const handleInvalidValue = (inputName, valueIsInvalid) => {
@@ -75,7 +76,7 @@ export const LoginScreen = ({ navigation }) => {
               label="Password"
               matchType="text"
               style={styles.input}
-              placeholder="Password" 
+              placeholder="Password"
               secureTextEntry={true}
               checkValue={doInputValueCheck}
               handleInvalidValue={handleInvalidValue}
@@ -85,7 +86,7 @@ export const LoginScreen = ({ navigation }) => {
             />
             {/* ButtonContainer */}
             <View style={{alignItems:"center"}}>
-              {!!error && <Text style={styles.error}>{error.code}</Text>}
+              <Text style={styles.error}>{error}</Text>
               <SolidButton
                 style={{width:185, marginBottom:10}}
                 onPress={() => setDoInputValueCheck(doInputValueCheck + 1)} 

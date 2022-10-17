@@ -13,46 +13,13 @@ import { Divider } from 'react-native-elements';
 // Insert specified amount of specific item to your inventory
 export const AddItem = ({ navigation, route }) => {
     const [item, setItem] = useState({...route.params?.item, barcode: route.params?.barcode ?? null})
-    const [collection, setCollection] = useState({...route.params?.collection})
+    const [inventory, setInventory] = useState({...route.params?.inventory})
     const [doInputValueCheck, setDoInputValueCheck] = useState(false)
     const [keyboardStatus, setKeyboardStatus] = useState(false);
     const [error, setError] = useState('')
     let invalidInputsList = []
     const colors = useTheme().colors;
 
-    /*
-    useFocusEffect(
-      useCallback(() => {
-        if(item.id) {
-          // Autofill item information
-          get(ref(
-            database, 'users/' + auth.currentUser.uid + '/iteminfo/' + item.id
-          ))
-          .then(snapshot => {
-            const itemSnapshot = snapshot.val();
-            if(itemSnapshot) {
-              setItem({
-                ...item, 
-                name: itemSnapshot.name, 
-                description: itemSnapshot.description
-              })
-              .catch(e => {
-                // todo: add error dialog
-                navigation.navigate('Item List', {
-                  collection: route.params.collection,
-                  item: item
-                }
-              )})
-            }
-            return item
-          })
-          .catch(e => setError(e.code))
-        }
-        return () => {
-        };
-      }, [route])
-    );
-*/
     useEffect(() => {
       const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
           setKeyboardStatus(true);
@@ -87,12 +54,12 @@ export const AddItem = ({ navigation, route }) => {
       
       // Add new item
       if(!route.params.edit) {
-        addItem(collection, item)
+        addItem(inventory, item)
         .catch(e => errMsg = "Error while adding item (" + e.code + ")")
 
       // Edit already existing item
       } else {
-        saveItem(collection, item)
+        saveItem(inventory, item)
         .catch(e => errMsg = "Error while editing item (" + e.code + ")")
         saveItemInfo(item)
         .catch(e => errMsg = "Error while editing item (" + e.code + ")")
@@ -100,7 +67,7 @@ export const AddItem = ({ navigation, route }) => {
 
       if(!errMsg) {
         navigation.navigate('Item List', {
-          collection: collection,
+          inventory: inventory,
           item: item
         })
       } else setError(errMsg)
@@ -171,7 +138,7 @@ export const AddItem = ({ navigation, route }) => {
                     style={{width:"50%", marginRight: 5}}
                     onPress={() => 
                       navigation.navigate('Barcode Scanner', {
-                        collection: collection,
+                        inventory: inventory,
                         item: item
                       }
                     )} 
